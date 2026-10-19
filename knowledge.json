@@ -1,5 +1,5 @@
 {
- "version": "2026-10-19c",
+ "version": "2026-10-19d",
  "notes": "verified=false 的條目請再確認；修改後推上 GitHub 即生效。",
  "places": {
   "gate": "校門",
@@ -363,27 +363,31 @@
    "verified": true
   },
   {
-   "id": "ok-mart",
-   "office": "OK 便利超商",
-   "place": "zhongke",
-   "floor": 1,
-   "room": "3101",
+   "id": "seven-eleven",
+   "office": "7-ELEVEN（校門）",
+   "place": "gate",
+   "floor": null,
+   "room": "",
    "topics": [
     "便利商店",
     "超商",
-    "OK",
+    "7-11",
+    "7-ELEVEN",
+    "小七",
     "餓",
     "吃",
     "飲料",
     "零食",
-    "買東西"
+    "買東西",
+    "一中街"
    ],
    "examples": [
     "肚子餓了",
-    "學校哪裡有便利商店"
+    "學校哪裡有便利商店",
+    "想買飲料"
    ],
-   "answer": "校內的 OK 便利超商在中科大樓 1 樓。校外的話，三民路校門左轉不遠有 7-ELEVEN。",
-   "source": "上課教室平面圖（110.08.10）",
+   "answer": "校內沒有便利商店。三民路校門口有一間 7-ELEVEN；往外走就是一中街，吃的選擇很多。從中商大樓出去則有全家。",
+   "source": "使用者提供（2026-10-19）",
    "verified": true
   },
   {
@@ -1148,6 +1152,24 @@
    ],
    "answer": "學生平安保險（學平險）的申請與理賠，請到學生活動中心 3 樓的課外活動指導組（課指組）。",
    "source": "使用者提供（2026-10-19，學校 FAQ）",
+   "verified": true
+  },
+  {
+   "id": "familymart",
+   "office": "全家便利商店（中商大樓外）",
+   "place": "zhongshang",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "全家",
+    "FamilyMart",
+    "全家便利商店"
+   ],
+   "examples": [
+    "附近有全家嗎"
+   ],
+   "answer": "從中商大樓出去就有一間全家便利商店；校門口另有 7-ELEVEN。",
+   "source": "使用者提供（2026-10-19）",
    "verified": true
   }
  ]
