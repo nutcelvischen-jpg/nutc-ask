@@ -80,6 +80,13 @@ function cors(origin: string | null) {
 const json = (body: unknown, status: number, headers: Record<string, string>) =>
   new Response(JSON.stringify(body), { status, headers: { ...headers, "Content-Type": "application/json; charset=utf-8" } })
 
+// safe hint for setup problems: key length and shape only, never the key itself
+function keyShape(){
+  const raw = Netlify.env.get("OPENROUTER_API_KEY") || ""
+  const m = raw.match(/sk-or-[A-Za-z0-9_-]+/)
+  return ` [key: raw ${raw.length} chars, ${m ? `sk-or- match ${m[0].length} chars` : "no sk-or- match"}${/[^\x21-\x7e]/.test(raw) ? ", has spaces/odd chars" : ""}]`
+}
+
 // Optional Google Sheet log (Apps Script web app). Off unless SHEET_WEBHOOK_URL and SHEET_SECRET are set. No IP is logged.
 function logToSheet(context: Context, row: Record<string, unknown>) {
   const url = Netlify.env.get("SHEET_WEBHOOK_URL"), secret = Netlify.env.get("SHEET_SECRET")
@@ -146,7 +153,7 @@ export default async (req: Request, context: Context) => {
       if (typeof res.floor !== "number") res.floor = null
     } catch (err) {
       console.error("model failed", String(err))
-      res = localAnswer(kb, q); status = "fallback: " + String(err).replace(/sk-[\w-]+/g, "sk-***").slice(0, 160)
+      res = localAnswer(kb, q); status = "fallback: " + String(err).replace(/sk-[\w-]+/g, "sk-***").slice(0, 160) + keyShape()
     }
   }
   // multi-stop flows come straight from the knowledge base, never from the model
