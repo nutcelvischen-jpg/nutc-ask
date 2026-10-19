@@ -1,5 +1,5 @@
 {
- "version": "2026-10-19d",
+ "version": "2026-10-19e",
  "notes": "verified=false 的條目請再確認；修改後推上 GitHub 即生效。",
  "places": {
   "gate": "校門",
@@ -50,7 +50,10 @@
    ],
    "answer": "就學貸款到學生活動中心 3 樓的課外活動指導組（課指組）辦理。",
    "source": "使用者提供（2026-10-19）",
-   "verified": true
+   "verified": true,
+   "cat": "辦事",
+   "label": "學貸申請",
+   "q": "辦學貸要去哪？"
   },
   {
    "id": "scooter-permit",
@@ -95,7 +98,10 @@
      "floor": 1,
      "action": "領取停車證"
     }
-   ]
+   ],
+   "cat": "辦事",
+   "label": "機車停車證",
+   "q": "機車停車證要怎麼辦？"
   },
   {
    "id": "leave-5yr",
@@ -117,7 +123,10 @@
    ],
    "answer": "五專學生繳交假單，到昌明樓 1 樓的生活輔導組（生輔組）辦理。",
    "source": "使用者提供（2026-10-19）",
-   "verified": true
+   "verified": true,
+   "cat": "辦事",
+   "label": "五專請假單",
+   "q": "五專假單要交哪裡？"
   },
   {
    "id": "health-center",
@@ -141,7 +150,10 @@
    ],
    "answer": "身體不舒服可以到昌明樓 1 樓的健康中心，同一層也有衛保組。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "辦事",
+   "label": "身體不舒服",
+   "q": "身體不舒服去哪？"
   },
   {
    "id": "campus-safety",
@@ -163,7 +175,10 @@
    ],
    "answer": "緊急狀況或遺失物，先到昌明樓 1 樓的校安中心。",
    "source": "上課教室平面圖（110.08.10）；遺失物承辦待確認",
-   "verified": false
+   "verified": false,
+   "cat": "辦事",
+   "label": "東西掉了・緊急狀況",
+   "q": "東西掉了去哪找？"
   },
   {
    "id": "dorm-office",
@@ -184,7 +199,10 @@
    ],
    "answer": "住宿申請與床位問題，到昌明樓 1 樓的學生宿舍組。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "辦事",
+   "label": "宿舍申請",
+   "q": "宿舍要怎麼申請？"
   },
   {
    "id": "career",
@@ -205,7 +223,10 @@
    ],
    "answer": "實習與就業相關事務，到昌明樓 1 樓的實習與就業輔導組。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "辦事",
+   "label": "實習・找工作",
+   "q": "實習要找誰？"
   },
   {
    "id": "service-learning",
@@ -223,7 +244,10 @@
    ],
    "answer": "服務學習相關事務，到昌明樓 1 樓的服務學習輔導組。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "辦事",
+   "label": "服務學習時數",
+   "q": "服務學習時數問誰？"
   },
   {
    "id": "dean-student",
@@ -240,7 +264,8 @@
    ],
    "answer": "學務長室在昌明樓 1 樓，學務處各組多半也在這一層。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "處室・學院"
   },
   {
    "id": "military",
@@ -257,7 +282,8 @@
    ],
    "answer": "教官室在昌明樓 1 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "處室・學院"
   },
   {
    "id": "scholarship",
@@ -276,7 +302,10 @@
    ],
    "answer": "獎助學金與學雜費減免，可先洽昌明樓 1 樓的生活輔導組。",
    "source": "上課教室平面圖（110.08.10）；承辦項目待確認",
-   "verified": false
+   "verified": false,
+   "cat": "辦事",
+   "label": "獎學金・學雜費減免",
+   "q": "獎學金去哪申請？"
   },
   {
    "id": "registry",
@@ -301,7 +330,10 @@
    ],
    "answer": "休學、註冊、選課與學籍，到中科大樓 2 樓的註冊組與課務組。",
    "source": "上課教室平面圖（110.08.10）；日間部或進修部承辦待確認",
-   "verified": false
+   "verified": false,
+   "cat": "辦事",
+   "label": "休學・選課・註冊",
+   "q": "我要辦休學要去哪？"
   },
   {
    "id": "cont-ed-student",
@@ -319,7 +351,8 @@
    ],
    "answer": "進修部學生事務組在中科大樓 2 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "處室・學院"
   },
   {
    "id": "dean-academic",
@@ -336,7 +369,8 @@
    ],
    "answer": "教務長室在中科大樓 2 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "處室・學院"
   },
   {
    "id": "intl-office",
@@ -360,7 +394,10 @@
    ],
    "answer": "國際生、交換學生與簽證事務，到中科大樓 1 樓的國際事務處。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "辦事",
+   "label": "國際生・交換學生",
+   "q": "交換學生去哪問？"
   },
   {
    "id": "seven-eleven",
@@ -388,7 +425,10 @@
    ],
    "answer": "校內沒有便利商店。三民路校門口有一間 7-ELEVEN；往外走就是一中街，吃的選擇很多。從中商大樓出去則有全家。",
    "source": "使用者提供（2026-10-19）",
-   "verified": true
+   "verified": true,
+   "cat": "生活",
+   "label": "肚子餓了",
+   "q": "肚子餓了"
   },
   {
    "id": "ir-center",
@@ -402,7 +442,8 @@
    "examples": [],
    "answer": "校務研究中心在中科大樓 1 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "處室・學院"
   },
   {
    "id": "rnd",
@@ -418,7 +459,8 @@
    "examples": [],
    "answer": "研究發展處在中科大樓 3 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "處室・學院"
   },
   {
    "id": "gen-ed",
@@ -433,7 +475,8 @@
    "examples": [],
    "answer": "通識教育中心在中科大樓 3 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "處室・學院"
   },
   {
    "id": "language-center",
@@ -453,7 +496,10 @@
    ],
    "answer": "語言中心在中科大樓 4 樓，自學室也在這一層。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "辦事",
+   "label": "英檢・多益",
+   "q": "英檢要去哪問？"
   },
   {
    "id": "dept-ib",
@@ -471,7 +517,8 @@
    ],
    "answer": "國貿系辦公室在中科大樓 7 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-ae",
@@ -487,7 +534,8 @@
    "examples": [],
    "answer": "應用英語系辦公室在中科大樓 5 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-aj",
@@ -503,7 +551,8 @@
    "examples": [],
    "answer": "應用日語系辦公室在中科大樓 6 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-ac",
@@ -519,7 +568,8 @@
    "examples": [],
    "answer": "應用中文系辦公室在中科大樓 9 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "chinese-center",
@@ -535,7 +585,8 @@
    "examples": [],
    "answer": "華語中心在中科大樓 9 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "處室・學院"
   },
   {
    "id": "conf-hall",
@@ -551,7 +602,10 @@
    "examples": [],
    "answer": "3812 國際會議廳在中科大樓 8 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "場地",
+   "label": "國際會議廳（中科 3812）",
+   "q": "3812 國際會議廳在哪？"
   },
   {
    "id": "lecture-hall",
@@ -565,7 +619,10 @@
    "examples": [],
    "answer": "演講廳在昌明樓 2 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "場地",
+   "label": "演講廳（昌明 2F）",
+   "q": "演講廳在哪？"
   },
   {
    "id": "dept-cpd",
@@ -580,7 +637,8 @@
    "examples": [],
    "answer": "創意商品設計系辦公室在昌明樓 2 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-id",
@@ -596,7 +654,8 @@
    "examples": [],
    "answer": "室內設計系辦公室在昌明樓 3 樓。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-mmd",
@@ -612,7 +671,8 @@
    "examples": [],
    "answer": "多媒體設計系辦公室在昌明樓 4 樓。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-cd",
@@ -631,7 +691,8 @@
    "examples": [],
    "answer": "商業設計系辦公室在昌明樓 5 樓，攝影棚也在這層。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-dm",
@@ -648,7 +709,8 @@
    "examples": [],
    "answer": "流通管理系辦公室在弘業樓 2 樓。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "pe-office",
@@ -669,7 +731,10 @@
    ],
    "answer": "體育室在奇秀樓 1 樓，和器材室相鄰；借器材、體育課問題都可以到這裡。",
    "source": "使用者提供（2026-10-19，學校公告）",
-   "verified": true
+   "verified": true,
+   "cat": "辦事",
+   "label": "體育課・借器材",
+   "q": "借體育器材去哪？"
   },
   {
    "id": "library",
@@ -690,7 +755,10 @@
    ],
    "answer": "圖書館在中商大樓。從中華路來可直接由北側入口進去，大樓可南北穿越。",
    "source": "校園配置圖",
-   "verified": true
+   "verified": true,
+   "cat": "生活",
+   "label": "圖書館",
+   "q": "圖書館在哪？"
   },
   {
    "id": "basketball",
@@ -708,7 +776,10 @@
    ],
    "answer": "兩面全場籃球場在昌明樓北側、靠近中商大樓。",
    "source": "使用者提供（2026-10-18）",
-   "verified": true
+   "verified": true,
+   "cat": "運動",
+   "label": "籃球場",
+   "q": "想打籃球"
   },
   {
    "id": "volleyball",
@@ -723,7 +794,10 @@
    "examples": [],
    "answer": "兩面排球場在學生活動中心東側、昌明樓北側。",
    "source": "使用者提供（2026-10-18）",
-   "verified": true
+   "verified": true,
+   "cat": "運動",
+   "label": "排球場",
+   "q": "排球場在哪？"
   },
   {
    "id": "tennis",
@@ -738,7 +812,10 @@
    "examples": [],
    "answer": "網球場在運動場跑道中間。",
    "source": "使用者提供（2026-10-18）",
-   "verified": true
+   "verified": true,
+   "cat": "運動",
+   "label": "網球場",
+   "q": "網球場在哪？"
   },
   {
    "id": "track",
@@ -756,7 +833,10 @@
    "examples": [],
    "answer": "運動場在翰英樓南側，跑道中間是網球場。",
    "source": "校園配置圖",
-   "verified": true
+   "verified": true,
+   "cat": "運動",
+   "label": "運動場・跑步",
+   "q": "想去跑步"
   },
   {
    "id": "gym",
@@ -771,7 +851,10 @@
    "examples": [],
    "answer": "體育館在弘業樓東側、運動場南邊。",
    "source": "校園配置圖",
-   "verified": true
+   "verified": true,
+   "cat": "運動",
+   "label": "體育館",
+   "q": "體育館在哪？"
   },
   {
    "id": "car-parking",
@@ -790,7 +873,10 @@
    ],
    "answer": "對外收費汽車位在中商大樓，由中華路進入；車位有限，建議搭大眾運輸。",
    "source": "交通路線資訊（招生組）",
-   "verified": true
+   "verified": true,
+   "cat": "生活",
+   "label": "汽車停哪",
+   "q": "開車要停哪？"
   },
   {
    "id": "scooter-parking",
@@ -808,7 +894,10 @@
    ],
    "answer": "學生機車停車場在學生活動中心旁、資訊館地下室與錦平街側；部分需刷學生證或車牌辨識。",
    "source": "總務處宣講資料",
-   "verified": true
+   "verified": true,
+   "cat": "生活",
+   "label": "機車停哪",
+   "q": "機車要停哪？"
   },
   {
    "id": "clubs",
@@ -825,7 +914,10 @@
    ],
    "answer": "社團活動多在學生活動中心。",
    "source": "上課教室平面圖（110.08.10）；待確認",
-   "verified": false
+   "verified": false,
+   "cat": "生活",
+   "label": "社團",
+   "q": "社團辦公室在哪？"
   },
   {
    "id": "cashier",
@@ -859,7 +951,10 @@
    ],
    "answer": "出納組在行政大樓 1 樓，負責學雜費等各項費用的收納、教職員薪資與鐘點費撥付、所得稅扣繳申報。電話 (04)2219-5330，傳真 (04)2219-5331。",
    "source": "出納組、事務組官方簡介（使用者提供 2026-10-19）",
-   "verified": true
+   "verified": true,
+   "cat": "辦事",
+   "label": "繳費",
+   "q": "要去哪裡繳費？"
   },
   {
    "id": "general-affairs",
@@ -894,7 +989,10 @@
    ],
    "answer": "事務組在行政大樓 1 樓，負責全校採購、校園環境清潔、技工工友與警衛管理、教職員工與工讀生勞健保、零用金及全校汽機車管理。電話 (04)2219-5310，傳真 (04)2219-5311。",
    "source": "出納組、事務組官方簡介（使用者提供 2026-10-19）",
-   "verified": true
+   "verified": true,
+   "cat": "辦事",
+   "label": "工讀生勞健保",
+   "q": "工讀生勞健保找誰？"
   },
   {
    "id": "college-business",
@@ -914,7 +1012,8 @@
    ],
    "answer": "商學院辦公室在中商大樓 2 樓 7201，院長室在 7202。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "處室・學院"
   },
   {
    "id": "zs-conf-hall",
@@ -932,7 +1031,10 @@
    ],
    "answer": "中商大樓的國際會議廳在 2 樓（中科大樓 8 樓另有 3812 國際會議廳）。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "場地",
+   "label": "國際會議廳（中商 2F）",
+   "q": "中商大樓的國際會議廳在哪？"
   },
   {
    "id": "dept-ais",
@@ -952,7 +1054,8 @@
    ],
    "answer": "會計資訊系辦公室在中商大樓 4 樓 7413。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-stat",
@@ -971,7 +1074,8 @@
    ],
    "answer": "應用統計系辦公室在中商大樓 5 樓 7510。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-ba",
@@ -990,7 +1094,8 @@
    ],
    "answer": "企業管理系辦公室在中商大樓 7 樓 7810。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-pft",
@@ -1009,7 +1114,8 @@
    ],
    "answer": "財政稅務系辦公室在中商大樓 9 樓 7923。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "college-intel",
@@ -1027,7 +1133,8 @@
    ],
    "answer": "智慧產業學院辦公室在中科大樓 1 樓 3104A。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "處室・學院"
   },
   {
    "id": "dept-bm",
@@ -1046,7 +1153,8 @@
    ],
    "answer": "商業經營系辦公室在中科大樓 1 樓 3104B。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-lrm",
@@ -1065,7 +1173,8 @@
    ],
    "answer": "休閒事業經營系在中技大樓 4、5 樓。中技大樓在錦平街對面，從校門往左沿三民路走，過 7-ELEVEN 後左轉錦平街。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-im",
@@ -1084,7 +1193,8 @@
    ],
    "answer": "資訊管理系辦公室在資訊館 4 樓 2406。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "dept-csie",
@@ -1103,7 +1213,8 @@
    ],
    "answer": "資訊工程系辦公室在資訊館 5 樓 2505。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "prog-ai",
@@ -1124,7 +1235,8 @@
    ],
    "answer": "人工智慧應用工程學士學位學程（資訊與流通學院）在資訊館 8 樓 2805。",
    "source": "使用者提供（2026-10-19，學校網頁）",
-   "verified": true
+   "verified": true,
+   "cat": "系所"
   },
   {
    "id": "student-insurance",
@@ -1152,7 +1264,10 @@
    ],
    "answer": "學生平安保險（學平險）的申請與理賠，請到學生活動中心 3 樓的課外活動指導組（課指組）。",
    "source": "使用者提供（2026-10-19，學校 FAQ）",
-   "verified": true
+   "verified": true,
+   "cat": "辦事",
+   "label": "學平險・車禍理賠",
+   "q": "車禍要申請學生保險去哪？"
   },
   {
    "id": "familymart",
@@ -1170,7 +1285,18 @@
    ],
    "answer": "從中商大樓出去就有一間全家便利商店；校門口另有 7-ELEVEN。",
    "source": "使用者提供（2026-10-19）",
-   "verified": true
+   "verified": true,
+   "cat": "生活",
+   "label": "全家便利商店",
+   "q": "附近有全家嗎？"
   }
+ ],
+ "cats": [
+  "辦事",
+  "生活",
+  "運動",
+  "系所",
+  "處室・學院",
+  "場地"
  ]
 }
