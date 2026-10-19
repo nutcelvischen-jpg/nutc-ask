@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/t-rag.mjs && node tests/t-fn.mjs"
+    "test": "node tests/t-rag.mjs && node --experimental-strip-types tests/t-fn.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
   }
 }
