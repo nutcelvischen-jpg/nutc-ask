@@ -6,7 +6,7 @@ const bigrams = s => { const out = new Set(); for (let i = 0; i < s.length - 1; 
 
 /** Room code such as 3705 → { place, floor, code } using knowledge.roomCodes. */
 export function roomCode(kb, q){
-  const m = norm(q).match(/([3-8])([1-9])\d{2}[a-z]?/);
+  const m = norm(q).match(/(?<!\d)([2-8])([1-9])\d{2}(?!\d)[a-z]?/);  // 2 資訊館 … 8 奇秀樓; not part of a longer number (phone, year)
   if (!m || !kb.roomCodes[m[1]]) return null;
   return { place: kb.roomCodes[m[1]], floor: +m[2], code: m[0].toUpperCase() };
 }

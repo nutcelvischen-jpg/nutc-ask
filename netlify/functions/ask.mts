@@ -136,7 +136,7 @@ export default async (req: Request, context: Context) => {
 
   const q = typeof body?.q === "string" ? body.q.trim().slice(0, MAX_QUESTION_CHARS) : ""
   if (!q) return json({ error: "請輸入問題" }, 400, h)
-  const en = /^[\x00-\x7F\s]*$/.test(q)
+  const en = /[a-z]/i.test(q) && /^[\x00-\x7F\s]*$/.test(q)  // digits alone (a room number) are not English
   const visitor = typeof body?.vid === "string" && /^[a-zA-Z0-9-]{8,64}$/.test(body.vid) ? body.vid : `ip-${context.ip || "unknown"}`
   const quota = await useQuota(visitor, context.ip || "unknown")
   if (!quota.ok) return json({ error: en ? "You’ve reached today’s limit. Please try again tomorrow." : "今天問的次數到上限了，明天再來問！急事請洽學務處。", code: "daily_limit", left: 0 }, 429, h)
