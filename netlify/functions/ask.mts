@@ -93,7 +93,7 @@ async function askModel(key: string, kb: any, q: string, hits: any[], en: boolea
   const data = hits.map(({ e }) => ({ id: e.id, office: e.office, place: e.place, placeName: kb.places[e.place], floor: e.floor, room: e.room || undefined, answer: e.answer, steps: e.steps || undefined, verified: e.verified }))
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST", signal: AbortSignal.timeout(15000),
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "HTTP-Referer": "https://drchunchihchen.github.io/cv/campus/ask/", "X-Title": "NUTC 問" },
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "HTTP-Referer": "https://drchunchihchen.github.io/cv/campus/ask/", "X-Title": "NUTC Ask" },
     body: JSON.stringify({
       model: MODEL, max_tokens: 600, temperature: 0.2,
       messages: [{ role: "system", content: systemPrompt(kb, en) }, { role: "user", content: `資料：${JSON.stringify(data)}\n\n問題：${q}` }],
@@ -135,7 +135,9 @@ export default async (req: Request, context: Context) => {
     res = { answer: en ? "I’m not sure about that one. Try naming an office, a building or a room number." : "這題我還不確定。可以換個說法，或直接說單位、地點、教室編號；也可以到昌明樓 1 樓學務處詢問。", office: null, place: null, floor: null, entryId: null, confidence: "low" }
     status = "no-match"
   } else {
-    const key = Netlify.env.get("OPENROUTER_API_KEY")
+    // tolerate stray text pasted around the key (headers must be plain ASCII)
+    const raw = Netlify.env.get("OPENROUTER_API_KEY") || ""
+    const key = (raw.match(/sk-or-[A-Za-z0-9_-]+/) || [raw.trim()])[0]
     try {
       if (!key) throw new Error("no key")
       res = await askModel(key, kb, q, top, en)
