@@ -1,5 +1,5 @@
 {
- "version": "2026-10-19e",
+ "version": "2026-10-19f",
  "notes": "verified=false 的條目請再確認；修改後推上 GitHub 即生效。",
  "places": {
   "gate": "校門",
@@ -150,7 +150,7 @@
    ],
    "answer": "身體不舒服可以到昌明樓 1 樓的健康中心，同一層也有衛保組。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "辦事",
    "label": "身體不舒服",
    "q": "身體不舒服去哪？"
@@ -199,7 +199,7 @@
    ],
    "answer": "住宿申請與床位問題，到昌明樓 1 樓的學生宿舍組。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "辦事",
    "label": "宿舍申請",
    "q": "宿舍要怎麼申請？"
@@ -223,7 +223,7 @@
    ],
    "answer": "實習與就業相關事務，到昌明樓 1 樓的實習與就業輔導組。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "辦事",
    "label": "實習・找工作",
    "q": "實習要找誰？"
@@ -244,7 +244,7 @@
    ],
    "answer": "服務學習相關事務，到昌明樓 1 樓的服務學習輔導組。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "辦事",
    "label": "服務學習時數",
    "q": "服務學習時數問誰？"
@@ -264,7 +264,7 @@
    ],
    "answer": "學務長室在昌明樓 1 樓，學務處各組多半也在這一層。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "處室・學院"
   },
   {
@@ -282,7 +282,7 @@
    ],
    "answer": "教官室在昌明樓 1 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "處室・學院"
   },
   {
@@ -351,7 +351,7 @@
    ],
    "answer": "進修部學生事務組在中科大樓 2 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "處室・學院"
   },
   {
@@ -369,7 +369,7 @@
    ],
    "answer": "教務長室在中科大樓 2 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "處室・學院"
   },
   {
@@ -394,7 +394,7 @@
    ],
    "answer": "國際生、交換學生與簽證事務，到中科大樓 1 樓的國際事務處。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "辦事",
    "label": "國際生・交換學生",
    "q": "交換學生去哪問？"
@@ -442,7 +442,7 @@
    "examples": [],
    "answer": "校務研究中心在中科大樓 1 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "處室・學院"
   },
   {
@@ -459,7 +459,7 @@
    "examples": [],
    "answer": "研究發展處在中科大樓 3 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "處室・學院"
   },
   {
@@ -475,7 +475,7 @@
    "examples": [],
    "answer": "通識教育中心在中科大樓 3 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "處室・學院"
   },
   {
@@ -496,7 +496,7 @@
    ],
    "answer": "語言中心在中科大樓 4 樓，自學室也在這一層。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "辦事",
    "label": "英檢・多益",
    "q": "英檢要去哪問？"
@@ -516,7 +516,7 @@
     "國貿系辦在哪"
    ],
    "answer": "國貿系辦公室在中科大樓 7 樓。",
-   "source": "上課教室平面圖（110.08.10）",
+   "source": "使用者本人辦公室（3705）",
    "verified": true,
    "cat": "系所"
   },
@@ -534,7 +534,7 @@
    "examples": [],
    "answer": "應用英語系辦公室在中科大樓 5 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "系所"
   },
   {
@@ -551,7 +551,7 @@
    "examples": [],
    "answer": "應用日語系辦公室在中科大樓 6 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "系所"
   },
   {
@@ -568,7 +568,7 @@
    "examples": [],
    "answer": "應用中文系辦公室在中科大樓 9 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "系所"
   },
   {
@@ -585,7 +585,7 @@
    "examples": [],
    "answer": "華語中心在中科大樓 9 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "處室・學院"
   },
   {
@@ -602,7 +602,7 @@
    "examples": [],
    "answer": "3812 國際會議廳在中科大樓 8 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "場地",
    "label": "國際會議廳（中科 3812）",
    "q": "3812 國際會議廳在哪？"
@@ -619,7 +619,7 @@
    "examples": [],
    "answer": "演講廳在昌明樓 2 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "場地",
    "label": "演講廳（昌明 2F）",
    "q": "演講廳在哪？"
@@ -637,7 +637,7 @@
    "examples": [],
    "answer": "創意商品設計系辦公室在昌明樓 2 樓。",
    "source": "上課教室平面圖（110.08.10）",
-   "verified": true,
+   "verified": false,
    "cat": "系所"
   },
   {
