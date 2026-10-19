@@ -1,5 +1,5 @@
 {
- "version": "2026-10-19h",
+ "version": "2026-10-19i",
  "notes": "verified=false 的條目請再確認；修改後推上 GitHub 即生效。",
  "places": {
   "gate": "校門",
@@ -21,7 +21,9 @@
   "girls": "女生宿舍",
   "boys": "男生宿舍",
   "zhongji": "中技大樓",
-  "incub": "創新育成中心"
+  "incub": "創新育成中心",
+  "vball2": "排球場（運動場北側）",
+  "stand": "司令台"
  },
  "roomCodes": {
   "2": "xunxi",
@@ -850,7 +852,7 @@
   {
    "id": "volleyball",
    "office": "排球場",
-   "place": "vball",
+   "place": "vball2",
    "floor": null,
    "room": "",
    "topics": [
@@ -858,12 +860,33 @@
     "排球場"
    ],
    "examples": [],
-   "answer": "兩面排球場在學生活動中心東側、昌明樓北側。",
-   "source": "使用者提供（2026-10-18）",
+   "answer": "排球場有兩處：運動場北側（翰英樓前）有四面，中間隔著司令台，兩側各兩面；另外學生活動中心東側、昌明樓北側也有兩面。",
+   "source": "使用者提供（2026-10-19）",
    "verified": true,
    "cat": "運動",
    "label": "排球場",
    "q": "排球場在哪？"
+  },
+  {
+   "id": "stand",
+   "office": "司令台",
+   "place": "stand",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "司令台",
+    "升旗台",
+    "司令臺"
+   ],
+   "examples": [
+    "司令台在哪"
+   ],
+   "answer": "司令台在運動場北側中央、翰英樓前，面向跑道，兩側各有兩面排球場。",
+   "source": "使用者提供（2026-10-19）",
+   "verified": true,
+   "cat": "運動",
+   "label": "司令台",
+   "q": "司令台在哪？"
   },
   {
    "id": "tennis",
