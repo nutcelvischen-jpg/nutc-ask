@@ -144,7 +144,7 @@ export default async (req: Request, context: Context) => {
       if (typeof res.floor !== "number") res.floor = null
     } catch (err) {
       console.error("model failed", String(err))
-      res = localAnswer(kb, q); status = "fallback"
+      res = localAnswer(kb, q); status = "fallback: " + String(err).replace(/sk-[\w-]+/g, "sk-***").slice(0, 160)
     }
   }
   // multi-stop flows come straight from the knowledge base, never from the model
@@ -152,6 +152,7 @@ export default async (req: Request, context: Context) => {
   res.steps = ent?.steps ? ent.steps.filter((s: any) => kb.places[s.place]) : (status !== "ok" ? res.steps || null : null)
   res.also = top.slice(1, 3).filter((x: any) => x.e.office !== res.office).map((x: any) => ({ office: x.e.office, id: x.e.id }))
   res.left = quota.left
+  res.status = status
 
   logToSheet(context, { kind: "ask", question: q, answer: res.answer, office: res.office || "", place: res.place || "", floor: res.floor ?? "", status, matched: top.map((x: any) => x.e.id).join(",") })
   return json(res, 200, h)
