@@ -7,7 +7,7 @@ globalThis.fetch = async (url, opt) => {
   url = String(url);
   if (url.includes('raw.githubusercontent')) return new Response('nope', { status: 404 }); // force bundled knowledge.json
   if (url.includes('openrouter')){
-    const user = JSON.parse(opt.body).messages[1].content, data = JSON.parse(user.slice(3, user.indexOf('\n\n問題'))), e = data[0];
+    const user = JSON.parse(opt.body).messages[1].content, data = JSON.parse(user.slice(3, user.indexOf('\n\n<question>'))), e = data[0];
     return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ answer: e.answer, office: e.office, place: e.place, floor: e.floor, entryId: e.id, confidence: 'high' }) } }] }));
   }
   if (url.includes('sheet.example')){ logs.push(JSON.parse(opt.body)); return new Response('ok'); }
