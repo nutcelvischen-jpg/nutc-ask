@@ -8,7 +8,7 @@ import type { Config, Context } from "@netlify/functions"
 import { getStore } from "@netlify/blobs"
 import { retrieve, roomCode, localAnswer } from "../../rag.js"
 
-const MODEL = Netlify.env.get("OPENROUTER_MODEL") || "openai/gpt-6-luna"
+const MODEL = Netlify.env.get("OPENROUTER_MODEL") || "anthropic/claude-haiku-5.5"
 const ALLOWED_ORIGINS = [
   "https://drchunchihchen.github.io",
   "http://localhost:8000",
@@ -102,7 +102,7 @@ async function askModel(key: string, kb: any, q: string, hits: any[], en: boolea
     method: "POST", signal: AbortSignal.timeout(15000),
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "HTTP-Referer": "https://drchunchihchen.github.io/cv/campus/ask/", "X-Title": "NUTC Ask" },
     body: JSON.stringify({
-      model: MODEL, max_tokens: 600, temperature: 0.2,
+      model: MODEL, max_tokens: 1500, reasoning: { enabled: true },
       messages: [{ role: "system", content: systemPrompt(kb, en) }, { role: "user", content: `資料：${JSON.stringify(data)}\n\n問題：${q}` }],
     }),
   })

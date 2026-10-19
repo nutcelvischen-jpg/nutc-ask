@@ -16,7 +16,7 @@
 | `OPENROUTER_API_KEY` | OpenRouter 金鑰（Scope: Functions） |
 | `SHEET_WEBHOOK_URL` | Apps Script 網頁應用程式網址 |
 | `SHEET_SECRET` | 與 `google-sheet-log.gs` 裡的 `SECRET` 相同 |
-| `OPENROUTER_MODEL`（選填） | 預設 `openai/gpt-6-luna`，與蝦哥相同 |
+| `OPENROUTER_MODEL`（選填） | 預設 `anthropic/claude-haiku-5.5`（開啟 reasoning） |
 
 每個瀏覽器每天 30 題、每個 IP 每天 300 題（Netlify Blobs 計數）。
 
