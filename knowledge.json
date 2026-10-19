@@ -1,0 +1,854 @@
+{
+ "version": "2026-10-19",
+ "notes": "verified=false 的條目請再確認；修改後推上 GitHub 即生效。",
+ "places": {
+  "gate": "校門",
+  "xingzheng": "行政大樓",
+  "xunxi": "資訊館",
+  "zhongke": "中科大樓",
+  "plaza": "花園廣場",
+  "changming": "昌明樓",
+  "xuehuo": "學生活動中心",
+  "zhongshang": "中商大樓",
+  "bball": "籃球場",
+  "vball": "排球場",
+  "hanying": "翰英樓",
+  "tennis": "網球場",
+  "track": "運動場",
+  "gym": "體育館",
+  "qixiu": "奇秀樓",
+  "hongye": "弘業樓",
+  "girls": "女生宿舍",
+  "boys": "男生宿舍",
+  "zhongji": "中技大樓",
+  "incub": "創新育成中心"
+ },
+ "roomCodes": {
+  "3": "zhongke",
+  "4": "changming",
+  "5": "hanying",
+  "6": "hongye",
+  "8": "qixiu"
+ },
+ "entries": [
+  {
+   "id": "student-loan",
+   "office": "課外活動指導組（課指組）",
+   "place": "xuehuo",
+   "floor": 3,
+   "room": "",
+   "topics": [
+    "就學貸款",
+    "學貸",
+    "貸款"
+   ],
+   "examples": [
+    "辦學貸要去哪",
+    "就學貸款去哪裡申請"
+   ],
+   "answer": "就學貸款到學生活動中心 3 樓的課外活動指導組（課指組）辦理。",
+   "source": "使用者提供（2026-10-19）",
+   "verified": true
+  },
+  {
+   "id": "scooter-permit",
+   "office": "課外活動指導組（課指組）",
+   "place": "xuehuo",
+   "floor": 3,
+   "room": "",
+   "topics": [
+    "機車停車證",
+    "停車證",
+    "機車證",
+    "車證",
+    "停車證遺失",
+    "申請停車證",
+    "辦停車證",
+    "領停車證"
+   ],
+   "examples": [
+    "機車停車證要怎麼辦",
+    "停車證有問題去哪",
+    "我要申請機車停車證"
+   ],
+   "answer": "機車停車證要跑三個地方：先到學生活動中心 3 樓課指組繳資料，再到行政大樓出納組繳費，最後到資訊館（資訊大樓）事務組領證。",
+   "source": "使用者提供（2026-10-19）",
+   "verified": true,
+   "steps": [
+    {
+     "office": "課外活動指導組（課指組）",
+     "place": "xuehuo",
+     "floor": 3,
+     "action": "繳交申請資料"
+    },
+    {
+     "office": "出納組",
+     "place": "xingzheng",
+     "floor": null,
+     "action": "繳費"
+    },
+    {
+     "office": "事務組",
+     "place": "xunxi",
+     "floor": null,
+     "action": "領取停車證"
+    }
+   ]
+  },
+  {
+   "id": "leave-5yr",
+   "office": "生活輔導組（生輔組）",
+   "place": "changming",
+   "floor": 1,
+   "room": "4116",
+   "topics": [
+    "假單",
+    "請假",
+    "五專請假",
+    "五專假單",
+    "繳假單"
+   ],
+   "examples": [
+    "五專要交假單去哪",
+    "請假單交給誰"
+   ],
+   "answer": "五專學生繳交假單，到昌明樓 1 樓的生活輔導組（生輔組）辦理。",
+   "source": "使用者提供（2026-10-19）",
+   "verified": true
+  },
+  {
+   "id": "health-center",
+   "office": "健康中心",
+   "place": "changming",
+   "floor": 1,
+   "room": "4110",
+   "topics": [
+    "健康中心",
+    "保健室",
+    "看病",
+    "受傷",
+    "不舒服",
+    "擦藥",
+    "發燒",
+    "頭痛"
+   ],
+   "examples": [
+    "健康中心在哪",
+    "身體不舒服去哪"
+   ],
+   "answer": "身體不舒服可以到昌明樓 1 樓的健康中心，同一層也有衛保組。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "campus-safety",
+   "office": "校安中心",
+   "place": "changming",
+   "floor": 1,
+   "room": "4113B",
+   "topics": [
+    "校安中心",
+    "緊急",
+    "校安",
+    "遺失物",
+    "失物",
+    "東西不見"
+   ],
+   "examples": [
+    "東西掉了去哪找",
+    "緊急狀況找誰"
+   ],
+   "answer": "緊急狀況或遺失物，先到昌明樓 1 樓的校安中心。",
+   "source": "上課教室平面圖（110.08.10）；遺失物承辦待確認",
+   "verified": false
+  },
+  {
+   "id": "dorm-office",
+   "office": "學生宿舍組",
+   "place": "changming",
+   "floor": 1,
+   "room": "4113A",
+   "topics": [
+    "宿舍",
+    "住宿",
+    "床位",
+    "住校",
+    "宿舍申請"
+   ],
+   "examples": [
+    "宿舍要怎麼申請",
+    "住宿問題找誰"
+   ],
+   "answer": "住宿申請與床位問題，到昌明樓 1 樓的學生宿舍組。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "career",
+   "office": "實習與就業輔導組",
+   "place": "changming",
+   "floor": 1,
+   "room": "4107",
+   "topics": [
+    "實習",
+    "就業",
+    "履歷",
+    "職涯",
+    "工作"
+   ],
+   "examples": [
+    "實習要找誰",
+    "想找工作去哪諮詢"
+   ],
+   "answer": "實習與就業相關事務，到昌明樓 1 樓的實習與就業輔導組。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "service-learning",
+   "office": "服務學習輔導組",
+   "place": "changming",
+   "floor": 1,
+   "room": "4119",
+   "topics": [
+    "服務學習",
+    "志工",
+    "服務時數"
+   ],
+   "examples": [
+    "服務學習時數問誰"
+   ],
+   "answer": "服務學習相關事務，到昌明樓 1 樓的服務學習輔導組。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "dean-student",
+   "office": "學務長室",
+   "place": "changming",
+   "floor": 1,
+   "room": "4109",
+   "topics": [
+    "學務長",
+    "學務處"
+   ],
+   "examples": [
+    "學務處在哪"
+   ],
+   "answer": "學務長室在昌明樓 1 樓，學務處各組多半也在這一層。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "military",
+   "office": "教官室",
+   "place": "changming",
+   "floor": 1,
+   "room": "4114",
+   "topics": [
+    "教官",
+    "教官室"
+   ],
+   "examples": [
+    "教官室在哪"
+   ],
+   "answer": "教官室在昌明樓 1 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "scholarship",
+   "office": "生活輔導組（生輔組）",
+   "place": "changming",
+   "floor": 1,
+   "room": "4116",
+   "topics": [
+    "獎學金",
+    "助學金",
+    "學雜費減免",
+    "減免"
+   ],
+   "examples": [
+    "獎學金去哪申請"
+   ],
+   "answer": "獎助學金與學雜費減免，可先洽昌明樓 1 樓的生活輔導組。",
+   "source": "上課教室平面圖（110.08.10）；承辦項目待確認",
+   "verified": false
+  },
+  {
+   "id": "registry",
+   "office": "註冊組・課務組",
+   "place": "zhongke",
+   "floor": 2,
+   "room": "3215",
+   "topics": [
+    "註冊",
+    "選課",
+    "加退選",
+    "休學",
+    "退學",
+    "復學",
+    "學籍",
+    "成績",
+    "課務"
+   ],
+   "examples": [
+    "我要辦休學",
+    "選課有問題找誰"
+   ],
+   "answer": "休學、註冊、選課與學籍，到中科大樓 2 樓的註冊組與課務組。",
+   "source": "上課教室平面圖（110.08.10）；日間部或進修部承辦待確認",
+   "verified": false
+  },
+  {
+   "id": "cont-ed-student",
+   "office": "進修部學生事務組",
+   "place": "zhongke",
+   "floor": 2,
+   "room": "3214",
+   "topics": [
+    "進修部",
+    "進修部學務",
+    "夜間部"
+   ],
+   "examples": [
+    "進修部學務組在哪"
+   ],
+   "answer": "進修部學生事務組在中科大樓 2 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "dean-academic",
+   "office": "教務長室",
+   "place": "zhongke",
+   "floor": 2,
+   "room": "3213",
+   "topics": [
+    "教務長",
+    "教務處"
+   ],
+   "examples": [
+    "教務處在哪"
+   ],
+   "answer": "教務長室在中科大樓 2 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "intl-office",
+   "office": "國際事務處",
+   "place": "zhongke",
+   "floor": 1,
+   "room": "3105",
+   "topics": [
+    "國際事務處",
+    "國際處",
+    "國際生",
+    "交換",
+    "簽證",
+    "境外生",
+    "僑生",
+    "外籍生"
+   ],
+   "examples": [
+    "國際生簽證找誰",
+    "交換學生去哪問"
+   ],
+   "answer": "國際生、交換學生與簽證事務，到中科大樓 1 樓的國際事務處。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "ok-mart",
+   "office": "OK 便利超商",
+   "place": "zhongke",
+   "floor": 1,
+   "room": "3101",
+   "topics": [
+    "便利商店",
+    "超商",
+    "OK",
+    "餓",
+    "吃",
+    "飲料",
+    "零食",
+    "買東西"
+   ],
+   "examples": [
+    "肚子餓了",
+    "學校哪裡有便利商店"
+   ],
+   "answer": "校內的 OK 便利超商在中科大樓 1 樓。校外的話，三民路校門左轉不遠有 7-ELEVEN。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "ir-center",
+   "office": "校務研究中心",
+   "place": "zhongke",
+   "floor": 1,
+   "room": "3103",
+   "topics": [
+    "校務研究"
+   ],
+   "examples": [],
+   "answer": "校務研究中心在中科大樓 1 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "rnd",
+   "office": "研究發展處",
+   "place": "zhongke",
+   "floor": 3,
+   "room": "3310",
+   "topics": [
+    "研發處",
+    "研究發展處",
+    "計畫"
+   ],
+   "examples": [],
+   "answer": "研究發展處在中科大樓 3 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "gen-ed",
+   "office": "通識教育中心",
+   "place": "zhongke",
+   "floor": 3,
+   "room": "3312",
+   "topics": [
+    "通識",
+    "通識中心"
+   ],
+   "examples": [],
+   "answer": "通識教育中心在中科大樓 3 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "language-center",
+   "office": "語言中心",
+   "place": "zhongke",
+   "floor": 4,
+   "room": "3410",
+   "topics": [
+    "語言中心",
+    "英檢",
+    "多益",
+    "TOEIC",
+    "自學室"
+   ],
+   "examples": [
+    "英檢要去哪問"
+   ],
+   "answer": "語言中心在中科大樓 4 樓，自學室也在這一層。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "dept-ib",
+   "office": "國際貿易與經營系",
+   "place": "zhongke",
+   "floor": 7,
+   "room": "3705",
+   "topics": [
+    "國貿",
+    "國貿系",
+    "國際貿易"
+   ],
+   "examples": [
+    "國貿系辦在哪"
+   ],
+   "answer": "國貿系辦公室在中科大樓 7 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "dept-ae",
+   "office": "應用英語系",
+   "place": "zhongke",
+   "floor": 5,
+   "room": "3515",
+   "topics": [
+    "應英",
+    "英文系",
+    "應用英語"
+   ],
+   "examples": [],
+   "answer": "應用英語系辦公室在中科大樓 5 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "dept-aj",
+   "office": "應用日語系",
+   "place": "zhongke",
+   "floor": 6,
+   "room": "3615",
+   "topics": [
+    "應日",
+    "日文系",
+    "應用日語"
+   ],
+   "examples": [],
+   "answer": "應用日語系辦公室在中科大樓 6 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "dept-ac",
+   "office": "應用中文系",
+   "place": "zhongke",
+   "floor": 9,
+   "room": "3910",
+   "topics": [
+    "應中",
+    "中文系",
+    "應用中文"
+   ],
+   "examples": [],
+   "answer": "應用中文系辦公室在中科大樓 9 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "chinese-center",
+   "office": "華語中心",
+   "place": "zhongke",
+   "floor": 9,
+   "room": "3913",
+   "topics": [
+    "華語中心",
+    "華語",
+    "學中文"
+   ],
+   "examples": [],
+   "answer": "華語中心在中科大樓 9 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "conf-hall",
+   "office": "3812 國際會議廳",
+   "place": "zhongke",
+   "floor": 8,
+   "room": "3812",
+   "topics": [
+    "國際會議廳",
+    "會議廳",
+    "3812"
+   ],
+   "examples": [],
+   "answer": "3812 國際會議廳在中科大樓 8 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "lecture-hall",
+   "office": "演講廳",
+   "place": "changming",
+   "floor": 2,
+   "room": "4201",
+   "topics": [
+    "演講廳"
+   ],
+   "examples": [],
+   "answer": "演講廳在昌明樓 2 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "dept-cpd",
+   "office": "創意商品設計系",
+   "place": "changming",
+   "floor": 2,
+   "room": "4220",
+   "topics": [
+    "創意商品",
+    "商品設計"
+   ],
+   "examples": [],
+   "answer": "創意商品設計系辦公室在昌明樓 2 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "dept-id",
+   "office": "室內設計系",
+   "place": "changming",
+   "floor": 3,
+   "room": "4310",
+   "topics": [
+    "室設",
+    "室內設計"
+   ],
+   "examples": [],
+   "answer": "室內設計系辦公室在昌明樓 3 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "dept-mmd",
+   "office": "多媒體設計系",
+   "place": "changming",
+   "floor": 4,
+   "room": "4410",
+   "topics": [
+    "多媒體",
+    "多媒體設計"
+   ],
+   "examples": [],
+   "answer": "多媒體設計系辦公室在昌明樓 4 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "dept-cd",
+   "office": "商業設計研究所",
+   "place": "changming",
+   "floor": 5,
+   "room": "4512",
+   "topics": [
+    "商設",
+    "商業設計",
+    "攝影棚"
+   ],
+   "examples": [],
+   "answer": "商業設計研究所辦公室與攝影棚在昌明樓 5 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "dept-dm",
+   "office": "流通管理系",
+   "place": "hongye",
+   "floor": 2,
+   "room": "6201",
+   "topics": [
+    "流通",
+    "流管",
+    "流通管理"
+   ],
+   "examples": [],
+   "answer": "流通管理系辦公室在弘業樓 2 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "pe-office",
+   "office": "體育室",
+   "place": "qixiu",
+   "floor": 1,
+   "room": "8101",
+   "topics": [
+    "體育室",
+    "體育課",
+    "器材",
+    "借器材"
+   ],
+   "examples": [
+    "體育課的問題找誰"
+   ],
+   "answer": "體育室與器材室在奇秀樓 1 樓。",
+   "source": "上課教室平面圖（110.08.10）",
+   "verified": true
+  },
+  {
+   "id": "library",
+   "office": "圖書館",
+   "place": "zhongshang",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "圖書館",
+    "借書",
+    "還書",
+    "讀書",
+    "自習",
+    "念書"
+   ],
+   "examples": [
+    "圖書館在哪"
+   ],
+   "answer": "圖書館在中商大樓。從中華路來可直接由北側入口進去，大樓可南北穿越。",
+   "source": "校園配置圖",
+   "verified": true
+  },
+  {
+   "id": "basketball",
+   "office": "籃球場",
+   "place": "bball",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "籃球",
+    "籃球場",
+    "鬥牛"
+   ],
+   "examples": [
+    "想打籃球"
+   ],
+   "answer": "兩面全場籃球場在昌明樓北側、靠近中商大樓。",
+   "source": "使用者提供（2026-10-18）",
+   "verified": true
+  },
+  {
+   "id": "volleyball",
+   "office": "排球場",
+   "place": "vball",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "排球",
+    "排球場"
+   ],
+   "examples": [],
+   "answer": "兩面排球場在學生活動中心東側、昌明樓北側。",
+   "source": "使用者提供（2026-10-18）",
+   "verified": true
+  },
+  {
+   "id": "tennis",
+   "office": "網球場",
+   "place": "tennis",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "網球",
+    "網球場"
+   ],
+   "examples": [],
+   "answer": "網球場在運動場跑道中間。",
+   "source": "使用者提供（2026-10-18）",
+   "verified": true
+  },
+  {
+   "id": "track",
+   "office": "運動場",
+   "place": "track",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "運動場",
+    "操場",
+    "跑步",
+    "慢跑",
+    "田徑"
+   ],
+   "examples": [],
+   "answer": "運動場在翰英樓南側，跑道中間是網球場。",
+   "source": "校園配置圖",
+   "verified": true
+  },
+  {
+   "id": "gym",
+   "office": "體育館",
+   "place": "gym",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "體育館",
+    "室內運動"
+   ],
+   "examples": [],
+   "answer": "體育館在弘業樓東側、運動場南邊。",
+   "source": "校園配置圖",
+   "verified": true
+  },
+  {
+   "id": "car-parking",
+   "office": "汽車停車",
+   "place": "zhongshang",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "汽車停車",
+    "停車位",
+    "開車",
+    "訪客停車"
+   ],
+   "examples": [
+    "開車要停哪"
+   ],
+   "answer": "對外收費汽車位在中商大樓，由中華路進入；車位有限，建議搭大眾運輸。",
+   "source": "交通路線資訊（招生組）",
+   "verified": true
+  },
+  {
+   "id": "scooter-parking",
+   "office": "機車停車場",
+   "place": "xuehuo",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "機車停車",
+    "機車停哪",
+    "停機車"
+   ],
+   "examples": [
+    "機車要停哪"
+   ],
+   "answer": "學生機車停車場在學生活動中心旁、資訊館地下室與錦平街側；部分需刷學生證或車牌辨識。",
+   "source": "總務處宣講資料",
+   "verified": true
+  },
+  {
+   "id": "clubs",
+   "office": "社團",
+   "place": "xuehuo",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "社團",
+    "社辦"
+   ],
+   "examples": [
+    "社團辦公室在哪"
+   ],
+   "answer": "社團活動多在學生活動中心。",
+   "source": "上課教室平面圖（110.08.10）；待確認",
+   "verified": false
+  },
+  {
+   "id": "cashier",
+   "office": "出納組",
+   "place": "xingzheng",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "出納組",
+    "出納",
+    "繳費",
+    "繳錢",
+    "付款"
+   ],
+   "examples": [
+    "出納組在哪",
+    "要去哪裡繳費"
+   ],
+   "answer": "出納組在行政大樓（樓層待補）。",
+   "source": "使用者提供（2026-10-19）；樓層待補",
+   "verified": true
+  },
+  {
+   "id": "general-affairs",
+   "office": "事務組",
+   "place": "xunxi",
+   "floor": null,
+   "room": "",
+   "topics": [
+    "事務組",
+    "領證"
+   ],
+   "examples": [
+    "事務組在哪"
+   ],
+   "answer": "事務組在資訊館（資訊大樓），樓層待補。",
+   "source": "使用者提供（2026-10-19）；樓層待補",
+   "verified": true
+  }
+ ]
+}

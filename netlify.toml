@@ -1,0 +1,8 @@
+# Netlify hosts only the API; the pages live on GitHub Pages.
+[build]
+  publish = "public"
+  command = "mkdir -p public && echo 'NUTC 問 API' > public/index.html"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["knowledge.json"]

@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>問・臺中科大</title>
+<!-- Netlify API endpoint, e.g. https://nutc-ask.netlify.app/api/ask ; leave empty to answer from knowledge.json only -->
+<meta name="ask-api" content="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=LXGW+WenKai+TC:wght@400;700&display=swap">
+<style>
+/* Layout: one phone-width column on rice paper — giant brush 問, then the conversation, ask bar pinned to the thumb zone. */
+:root{
+  --paper:#F2EEE4; --card:#FBF9F3; --ink:#1A1916; --ink-2:#4A4740; --muted:#7A756A; --line:rgba(26,25,22,.12);
+  --seal:#B3302A; --seal-ink:#FFF6EE; --wash:rgba(26,25,22,.06); --route:#C99A2E;
+  --f-hand:'LXGW WenKai TC','Kaiti TC','BiauKai',serif;
+  --f-body:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#151412; --card:#1F1D1A; --ink:#ECE6D8; --ink-2:#C9C2B2; --muted:#958E80; --line:rgba(236,230,216,.13);
+  --seal:#CF4A3E; --seal-ink:#1A0F0C; --wash:rgba(236,230,216,.06); --route:#E2B64A; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#151412; --card:#1F1D1A; --ink:#ECE6D8; --ink-2:#C9C2B2; --muted:#958E80; --line:rgba(236,230,216,.13);
+  --seal:#CF4A3E; --seal-ink:#1A0F0C; --wash:rgba(236,230,216,.06); --route:#E2B64A; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 var(--f-body);-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(var(--wash) .6px,transparent .7px);background-size:5px 5px}
+button,input{font:inherit;color:inherit}
+.app{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+  padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));
+  padding-top:calc(14px + env(safe-area-inset-top,0px))}
+
+/* top line */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12.5px;color:var(--muted)}
+.top b{font-family:var(--f-hand);font-size:15px;color:var(--ink);font-weight:700;letter-spacing:.04em}
+.top a{color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+
+/* hero */
+.hero{display:grid;justify-items:center;text-align:center;padding:4vh 0 2vh;transition:padding .45s ease}
+.wen-wrap{position:relative;line-height:1;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.wen{display:block;width:clamp(210px,66vw,300px);aspect-ratio:1;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.wen-mark{display:inline-block;background:currentColor;-webkit-mask:var(--wen-img) center/contain no-repeat;mask:var(--wen-img) center/contain no-repeat}
+.splat{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.splat circle{fill:var(--ink)}
+.seal{position:absolute;right:-6px;bottom:6%;width:46px;height:46px;background:var(--seal);color:var(--seal-ink);border-radius:5px;
+  display:grid;grid-template-columns:1fr 1fr;place-items:center;font:700 15px/1 var(--f-hand);padding:5px;transform:rotate(-4deg);
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--seal-ink) 35%,transparent);opacity:0}
+.seal.on{animation:stamp .35s both cubic-bezier(.3,1.6,.5,1)}
+@keyframes stamp{from{transform:rotate(-4deg) scale(1.6);opacity:0}to{transform:rotate(-4deg) scale(1);opacity:1}}
+.lead{margin:6px 0 0;font-family:var(--f-hand);font-size:clamp(19px,5.4vw,23px);line-height:1.55;color:var(--ink-2);text-wrap:balance}
+.lead b{display:block;color:var(--ink);font-size:1.18em;letter-spacing:.06em}
+
+/* compact header once chatting */
+body.chatting .hero{grid-template-columns:auto 1fr;justify-items:start;text-align:left;align-items:center;gap:12px;padding:8px 0 4px}
+body.chatting .wen{width:64px}
+body.chatting .seal{width:22px;height:22px;font-size:7.5px;padding:2px;right:-8px;bottom:-2px;border-radius:3px;animation:none;opacity:1}
+body.chatting .splat{display:none}
+body.chatting .lead{margin:0;font-size:15px}
+body.chatting .lead b{font-size:17px;letter-spacing:.03em}
+
+/* thread */
+.thread{flex:1;display:flex;flex-direction:column;gap:14px;padding:6px 0 18px}
+.me{align-self:flex-end;max-width:82%;background:var(--ink);color:var(--paper);padding:10px 14px;border-radius:18px 18px 4px 18px;line-height:1.5;overflow-wrap:anywhere}
+.ai{align-self:stretch;display:grid;gap:10px}
+.ai-who{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.ai-who .wen-mark{width:22px;height:22px;color:var(--ink)}
+.thinking{display:inline-flex;gap:5px;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:4px 18px 18px 18px;width:max-content}
+.thinking span{width:7px;height:7px;border-radius:50%;background:var(--ink);opacity:.25;animation:dot 1s infinite}
+.thinking span:nth-child(2){animation-delay:.15s}.thinking span:nth-child(3){animation-delay:.3s}
+@keyframes dot{40%{opacity:.85;transform:translateY(-3px)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:4px 18px 18px 18px;overflow:hidden;box-shadow:0 8px 24px rgba(26,25,22,.07)}
+.card-in{padding:14px 16px 4px;display:grid;gap:6px}
+.where{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:3px 10px 3px 8px;border-radius:999px;background:color-mix(in srgb,var(--seal) 12%,transparent);color:var(--seal);font-weight:500}
+.tag::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--seal)}
+.card h3{margin:0;font:700 22px/1.3 var(--f-hand);letter-spacing:.02em}
+.card p{margin:0;color:var(--ink-2)}
+.map{display:block;width:100%;aspect-ratio:1320/960;margin-top:8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.meta{font-size:12.5px;color:var(--muted);padding:8px 16px 0;font-variant-numeric:tabular-nums}
+.acts{display:flex;gap:8px;padding:10px 16px 14px}
+.go{flex:1;display:inline-flex;justify-content:center;align-items:center;gap:8px;background:var(--ink);color:var(--paper);text-decoration:none;border-radius:12px;padding:12px;font-weight:700;letter-spacing:.04em}
+.ghost{border:1px solid var(--line);background:none;border-radius:12px;padding:12px 14px;cursor:pointer}
+.steps{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:0;counter-reset:st}
+.steps li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-top:1px dashed var(--line);counter-increment:st}
+.steps li:first-child{border-top:0}
+.steps li::before{content:counter(st);width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:700 13px/1 var(--f-body)}
+.steps b{display:block;font-size:15px}
+.steps small{color:var(--muted);font-size:12.5px}
+.steps a{font-size:12.5px;color:var(--ink);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:5px 10px;white-space:nowrap}
+.also{font-size:13px;color:var(--muted)}
+.also button{border:0;background:none;padding:0;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font-size:13px}
+.miss{background:var(--card);border:1px dashed var(--line);border-radius:4px 18px 18px 18px;padding:14px 16px;display:grid;gap:10px}
+.miss p{margin:0;color:var(--ink-2)}
+
+/* ask bar */
+.dock{position:sticky;bottom:0;padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--paper) 72%,transparent);display:grid;gap:10px}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * max(18px,env(safe-area-inset-left,0px)));padding:0 max(18px,env(safe-area-inset-left,0px))}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 13px;font-size:13.5px;cursor:pointer;white-space:nowrap}
+.ask{display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--ink);border-radius:999px;padding:6px 6px 6px 18px;box-shadow:0 10px 30px rgba(26,25,22,.12)}
+.ask input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:16px;padding:8px 0}
+.ask input::placeholder{color:var(--muted)}
+.send{flex:none;width:46px;height:46px;border-radius:50%;border:0;background:var(--ink);color:var(--paper);cursor:pointer;display:grid;place-items:center}
+.send .wen-mark{width:26px;height:26px}
+.send:disabled{opacity:.35;cursor:default}
+.note{font-size:11.5px;color:var(--muted);text-align:center}
+:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.seal,.thinking span{animation:none!important}.seal{opacity:1}}
+</style>
+</head>
+<body>
+
+
+<div class="app">
+  <div class="top"><b>國立臺中科技大學</b><a href="map.html">3D 地圖 →</a></div>
+
+  <header class="hero" id="hero">
+    <div class="wen-wrap">
+      <canvas class="wen" id="wen" role="img" aria-label="問（毛筆字）"></canvas>
+      <svg class="splat" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <circle cx="88" cy="18" r="1.3"/><circle cx="92" cy="24" r=".7"/><circle cx="8" cy="80" r="1"/><circle cx="4" cy="72" r=".5"/><circle cx="80" cy="96" r=".8"/>
+      </svg>
+      <div class="seal" aria-hidden="true"><span>臺</span><span>中</span><span>科</span><span>大</span></div>
+    </div>
+    <p class="lead">要去哪裡？要做什麼事？<b>問就對了。</b></p>
+  </header>
+
+  <main class="thread" id="thread" aria-live="polite"></main>
+
+  <div class="dock">
+    <div class="chips" id="chips"></div>
+    <form class="ask" id="ask" autocomplete="off">
+      <input id="q" type="text" placeholder="例如：我要辦休學要去哪？" aria-label="輸入你的問題" enterkeyhint="send">
+      <button class="send" id="send" type="submit" aria-label="送出" disabled><span class="wen-mark"></span></button>
+    </form>
+    <div class="note">回答由 AI 依校內資料整理，僅供參考，請以各單位公告為準</div>
+  </div>
+</div>
+
+<script type="module">
+import { localAnswer } from './rag.js';
+/* procedural brush calligraphy for 問 — stroke order, bristles, 飛白, 頓筆 */
+function mulberry(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+// 問 in a 100×100 box, in stroke order: [points, width, ending]
+// horizontals are thin and rise slightly to the right; verticals are heavy; folds press at the corner
+const WEN = [
+  [[[16,8],[16.5,94]], 9.5, 'dry'],                                   // 1 門 left vertical
+  [[[17,10.5],[42,8.8],[41.5,35]], 5.6, 'fold'],                      // 2 left box: top → right side
+  [[[19,22.8],[40,21.6]], 3.8, 'flat'],                               // 3 left box middle
+  [[[19,34.6],[40.5,33.4]], 4.2, 'flat'],                             // 4 left box bottom
+  [[[58.5,10],[58.5,35.5]], 6.2, 'dry'],                              // 5 right box left side
+  [[[59.5,10.2],[86,8.2],[85.4,84.5],[76.5,91.5]], 8.6, 'hook'], // 6 right top → long vertical → hook
+  [[[61,22.6],[83.5,21.4]], 3.8, 'flat'],                             // 7 right box middle
+  [[[61,34.4],[83.5,33.2]], 4.2, 'flat'],                             // 8 right box bottom
+  [[[33.5,51],[34,80]], 6.4, 'dry'],                                  // 9 口 left
+  [[[34.5,51.5],[65,49.8],[64.5,79.5]], 5.6, 'fold'],                 // 10 口 top → right
+  [[[35,77.8],[64,76.6]], 4.6, 'dry'],                                // 11 口 bottom
+];
+function buildBrush(size, seed = 5){
+  const r = mulberry(seed), k = size / 100, segs = [], step = Math.max(.9, size / 520);
+  for (const [raw, base, end] of WEN){
+    const pts = raw.map(([x, y]) => [x * k, y * k]), W = base * k;
+    // resample with per-segment direction (no fans at folds) and corner flags
+    const S = [];
+    for (let i = 0; i < pts.length - 1; i++){
+      const [x1, y1] = pts[i], [x2, y2] = pts[i + 1], L = Math.hypot(x2 - x1, y2 - y1), n = Math.max(1, Math.ceil(L / step));
+      const dx = (x2 - x1) / L, dy = (y2 - y1) / L;
+      for (let j = 0; j < n; j++) S.push({ x: x1 + (x2 - x1) * j / n, y: y1 + (y2 - y1) * j / n, dx, dy, seg: i, corner: i > 0 && j === 0 });
+    }
+    const N = S.length, BR = 26;
+    const bristles = Array.from({ length: BR }, (_, i) => ({ o: ((i + .5) / BR) * 2 - 1 + (r() - .5) * .04, ink: .78 + r() * .3, dry: r(), drift: 0 }));
+    const prevOff = new Float32Array(BR), prevPos = [];
+    for (let i = 0; i < N; i++){
+      const t = i / (N - 1), p = S[i];
+      // distance (in samples) to the nearest corner → 頓筆 swell
+      let cd = 99; for (let q = Math.max(0, i - 14); q < Math.min(N, i + 14); q++) if (S[q].corner) cd = Math.min(cd, Math.abs(q - i));
+      let pr = 1 + .38 * Math.exp(-i / (5 * k / step));                      // heavy entry
+      if (cd < 99 && !(end === 'hook' && S.slice(Math.max(0, i - 14), i + 14).some(s => s.corner && s.seg === raw.length - 2) && p.seg >= raw.length - 3 && i > N * .6)) pr += .32 * Math.exp(-cd / (2.2 * k / step)); // press at the fold
+      const lastSeg = raw.length - 2, hookStart = end === 'hook' ? S.findIndex(s => s.seg === lastSeg) : -1;
+      if (end === 'hook' && p.seg === lastSeg) pr *= Math.max(.14, 1 - (i - hookStart) / Math.max(1, N - hookStart) * .95);
+      else if (end === 'flat') pr *= 1 + .3 * Math.exp(-(N - 1 - i) / (3 * k / step)); // 收筆 bump at the right end
+      else if (end === 'dry') pr *= 1 - .14 * Math.max(0, t - .75) / .25;
+      const w = W * pr / 2, nx = -p.dy, ny = p.dx;
+      // ink runs out toward the end → 飛白
+      const inHook = end === 'hook' && p.seg === raw.length - 2;
+      const dryness = inHook ? .15 + .55 * (i - hookStart) / Math.max(1, N - hookStart) : end === 'hook' ? Math.max(0, t - .72) * .7 : end === 'flat' ? Math.max(0, t - .6) * .9 : end === 'fold' ? Math.max(0, t - .55) * 1.2 : Math.max(0, t - .45) * 1.35;
+      for (let b = 0; b < BR; b++){
+        const br = bristles[b];
+        br.drift += (r() - .5) * .05; br.drift *= .96;                       // slow random walk, not a sine wave
+        const off = (br.o + br.drift * .5) * w;
+        const x = p.x + nx * off, y = p.y + ny * off;
+        const gap = br.dry < dryness - .05 && (Math.abs(br.o) < .92 || r() < .5);
+        if (i > 0 && !p.corner && !gap && r() > .008){
+          const [px, py] = prevPos[b];
+          segs.push([px, py, x, y, Math.max(.7, W / BR * 2.15), Math.min(1, br.ink * (1 - dryness * .3))]);
+        }
+        prevPos[b] = [x, y];
+      }
+      if (p.corner && !(end === 'hook' && p.seg === raw.length - 2)) segs.push(['blot', p.x, p.y, W * .5, W * .46, Math.atan2(p.dy, p.dx) + .6]); // 頓筆
+    }
+    const s0 = S[0];
+    segs.push(['blot', s0.x + s0.dx * W * .3, s0.y + s0.dy * W * .3, W * .5, W * .4, Math.atan2(s0.dy, s0.dx) + .75]); // 起筆 (tucked inside the stroke head)
+    segs.push(['end']);
+  }
+  return segs;
+}
+function drawSegs(g, segs, from, to, ink){
+  g.strokeStyle = ink; g.fillStyle = ink; g.lineCap = 'round';
+  for (let i = from; i < to; i++){
+    const s = segs[i];
+    if (s[0] === 'end') continue;
+    if (s[0] === 'blot'){ g.globalAlpha = .95; g.beginPath(); g.ellipse(s[1], s[2], s[3], s[4], s[5], 0, Math.PI * 2); g.fill(); continue; }
+    g.globalAlpha = s[5]; g.lineWidth = s[4]; g.beginPath(); g.moveTo(s[0], s[1]); g.lineTo(s[2], s[3]); g.stroke();
+  }
+  g.globalAlpha = 1;
+}
+
+/* ---------- write 問 on load, stroke by stroke ---------- */
+(function(){
+  const cv = document.getElementById('wen'), seal = document.querySelector('.seal');
+  let segs = null, px = 0;
+  const ink = () => getComputedStyle(document.documentElement).getPropertyValue('--ink').trim();
+  function setup(){
+    const dpr = Math.min(devicePixelRatio || 1, 2), css = cv.getBoundingClientRect().width || 280;
+    px = Math.round(css * dpr); cv.width = cv.height = px; segs = buildBrush(px * .94);
+  }
+  function drawAll(){ const g = cv.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, px, px); g.translate(px * .03, px * .03); drawSegs(g, segs, 0, segs.length, ink()); }
+  // small mask image for icons (send button, assistant avatar)
+  const ic = document.createElement('canvas'); ic.width = ic.height = 128; const ig = ic.getContext('2d'); ig.translate(4, 4); const icSegs = buildBrush(120, 5); drawSegs(ig, icSegs, 0, icSegs.length, '#000');
+  document.documentElement.style.setProperty('--wen-img', `url(${ic.toDataURL()})`);
+  setup();
+  const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if (reduce){ drawAll(); seal.classList.add('on'); }
+  else {
+    const g = cv.getContext('2d'); g.translate(px * .03, px * .03); const col = ink();
+    const ends = segs.map((s, i) => s[0] === 'end' ? i : -1).filter(i => i >= 0);
+    // each stroke gets time in proportion to its length, plus a short lift between strokes
+    let i = 0, si = 0, pause = 0; const per = Math.ceil(segs.length / 75);
+    (function frame(){
+      if (pause > 0){ pause--; return requestAnimationFrame(frame); }
+      const to = Math.min(ends[si] + 1, i + per); drawSegs(g, segs, i, to, col); i = to;
+      if (i > ends[si]){ si++; pause = 2; }
+      if (si < ends.length) requestAnimationFrame(frame); else seal.classList.add('on');
+    })();
+  }
+  const redraw = () => { if (segs) drawAll(); };
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
+  new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();
+/* ---------- campus data (same coordinates as the 3D tour) ---------- */
+const R = (a, b, c, d) => [[a, b], [c, b], [c, d], [a, d]];
+const B = {
+  xingzheng: { n:'行政大樓', p:R(412,765,498,830), d:[512,798] },
+  xunxi: { n:'資訊館', p:[[318,758],[412,758],[412,830],[498,830],[498,888],[318,888]], d:[512,798] },
+  zhongke: { n:'中科大樓', p:[[340,540],[380,540],[380,560],[435,560],[435,575],[495,575],[495,715],[435,715],[435,745],[315,745],[315,575],[340,575]], d:[508,650] },
+  changming: { n:'昌明樓', p:[[513,455],[575,455],[575,505],[685,505],[685,455],[745,455],[745,595],[685,595],[685,565],[575,565],[575,595],[513,595]], d:[630,584] },
+  xuehuo: { n:'學生活動中心', p:R(402,365,485,520), d:[498,440] },
+  zhongshang: { n:'中商大樓', p:R(775,97,912,285), d:[843,302] },
+  hanying: { n:'翰英樓', p:R(752,352,1055,420), d:[820,435] },
+  gym: { n:'體育館', p:R(810,685,912,875), d:[861,676] },
+  qixiu: { n:'奇秀樓', p:R(912,700,1088,770), d:[1000,783] },
+  hongye: { n:'弘業樓', p:R(752,680,783,885), d:[740,780] },
+  girls: { n:'女生宿舍', p:R(1098,352,1162,600), d:[1181,480] },
+  boys: { n:'男生宿舍', p:R(1105,615,1160,770), d:[1181,690] },
+  zhongji: { n:'中技大樓', p:R(1293,440,1368,620), d:[1330,636] },
+  incub: { n:'創新育成中心', p:R(107,778,187,890), d:[199,840] },
+  bball: { n:'籃球場', at:[656,382], d:[656,428] },
+  vball: { n:'排球場', at:[569,377], d:[569,428] },
+  tennis: { n:'網球場', at:[924,557], d:[924,610] },
+  track: { n:'運動場', at:[924,472], d:[924,472] },
+};
+const CAMPUS = [[105,905],[105,775],[140,590],[300,530],[365,330],[720,330],[720,58],[1000,58],[1000,330],[1200,330],[1200,905]];
+// map pins sit at each building's centre (行政大樓 and 資訊館 share an entrance, so doors would overlap)
+for (const b of Object.values(B)) if (b.p && !b.at){ let x = 0, y = 0; b.p.forEach(q => { x += q[0]; y += q[1]; }); b.at = [x / b.p.length, y / b.p.length]; }
+B.gate = { n:'校門', at:[630,895], d:[630,895] };
+B.plaza = { n:'花園廣場', at:[632,735], d:[600,760] };
+// where the visitor starts — shared with the 3D map (map.html saves the same key)
+const ENTRIES = { sanmin: { n:'三民路校門', at:[630,902] }, zhonghua: { n:'中華路入口', at:[843,72] } };
+let ENTRY = 'sanmin'; try { ENTRY = localStorage.getItem('nutc-entry') === 'zhonghua' ? 'zhonghua' : 'sanmin'; } catch (e) {}
+const API = document.querySelector('meta[name="ask-api"]')?.content.trim() || '';
+const CHIPS = ['辦學貸要去哪？', '機車停車證怎麼辦', '五專假單交哪裡', '健康中心在哪？', '3705 怎麼走', '肚子餓了', '國際生簽證'];
+let KB = null;
+const kbReady = fetch('knowledge.json').then(r => r.json()).then(j => { KB = j; }).catch(() => {});
+
+/* ---------- ask: AI backend first, the local knowledge base if it is unreachable ---------- */
+async function getAnswer(text){
+  if (API){
+    try {
+      const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: text, lang: /[a-z]{3,}/i.test(text) && !/[一-鿿]/.test(text) ? 'en' : 'zh', entry: ENTRY }), signal: AbortSignal.timeout(12000) });
+      const j = await r.json();
+      if (r.ok) return j;
+      if (r.status === 429) return { answer: j.error, place: null, office: null };
+    } catch (e) {}
+  }
+  await kbReady;
+  const a = KB && localAnswer(KB, text);
+  return a ? { ...a, source: 'local' } : { answer: '這題我還不確定。可以換個說法，或直接說單位、地點、教室編號。', place: null, office: null, source: 'local' };
+}
+function sendFeedback(r, q, helpful){
+  if (!API) return;
+  fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'feedback', q, office: r.office, id: r.entryId, helpful }) }).catch(() => {});
+}
+
+/* ---------- UI ---------- */
+const $ = s => document.querySelector(s);
+const thread = $('#thread'), q = $('#q'), send = $('#send');
+$('#chips').innerHTML = CHIPS.map(c => `<button class="chip" type="button">${c}</button>`).join('');
+$('#chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) ask(b.textContent); });
+q.addEventListener('input', () => { send.disabled = !q.value.trim(); });
+$('#ask').addEventListener('submit', e => { e.preventDefault(); if (q.value.trim()) ask(q.value.trim()); });
+
+function esc(t){ return String(t ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c])); }
+let busy = false;
+async function ask(text){
+  if (busy) return; busy = true;
+  document.body.classList.add('chatting');
+  q.value = ''; send.disabled = true;
+  thread.insertAdjacentHTML('beforeend', `<div class="me">${esc(text)}</div>`);
+  const ai = document.createElement('div'); ai.className = 'ai';
+  ai.innerHTML = `<div class="ai-who"><span class="wen-mark"></span>校園小幫手</div><div class="thinking" aria-label="思考中"><span></span><span></span><span></span></div>`;
+  thread.appendChild(ai); scrollDown();
+  const t0 = performance.now(), r = await getAnswer(text);
+  await new Promise(res => setTimeout(res, Math.max(0, 500 - (performance.now() - t0))));
+  renderAnswer(ai, r, text); busy = false;
+}
+function scrollDown(){ requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth' })); }
+function dist(id){ const s = ENTRIES[ENTRY].at, d = B[id].d, m = Math.hypot(d[0] - s[0], d[1] - s[1]) * .37 * 1.25; return { m: Math.round(m / 10) * 10, min: Math.max(1, Math.round(m / 1.3 / 60)) }; }
+
+function renderAnswer(ai, r, question){
+  ai.querySelector('.thinking').remove();
+  if (!r.place || !B[r.place]){
+    ai.insertAdjacentHTML('beforeend', `<div class="miss"><p>${esc(r.answer)}</p><div class="chips" style="margin:0;padding:0">${['健康中心','課指組','註冊組','國際事務處'].map(c => `<button class="chip" type="button">${c}</button>`).join('')}</div></div>`);
+    ai.querySelectorAll('.chip').forEach(b => b.onclick = () => ask(b.textContent));
+    scrollDown(); return;
+  }
+  const steps = (r.steps || []).filter(s => B[s.place]);
+  if (steps.length > 1) return renderSteps(ai, r, question, steps);
+  const b = B[r.place], dd = dist(r.place), fl = r.floor ? ` · ${r.floor}F` : '';
+  const card = document.createElement('div'); card.className = 'card';
+  card.innerHTML = `
+    <div class="card-in">
+      <div class="where"><span class="tag">${esc(b.n)}${fl}</span></div>
+      <h3>${esc(r.office || b.n)}</h3>
+      <p>${esc(r.answer)}</p>
+    </div>
+    <canvas class="map" aria-label="${esc(b.n)}在校園中的位置"></canvas>
+    <div class="meta">從${ENTRIES[ENTRY].n}出發 · 約 ${dd.m} 公尺 · 步行 ${dd.min} 分鐘</div>
+    <div class="acts"><a class="go" href="map.html#${r.place}${r.floor ? '.' + r.floor : ''}">帶我去 →</a><button class="ghost" type="button" data-fb="1" aria-label="有幫助">👍</button><button class="ghost" type="button" data-fb="0" aria-label="沒幫助">👎</button></div>`;
+  ai.appendChild(card);
+  card.querySelectorAll('[data-fb]').forEach(btn => btn.onclick = () => {
+    sendFeedback(r, question, btn.dataset.fb === '1');
+    card.querySelector('.acts').insertAdjacentHTML('afterend', `<div class="meta" style="padding:0 16px 12px">${btn.dataset.fb === '1' ? '謝謝！' : '收到，我們會補強這題。'}</div>`);
+    card.querySelectorAll('[data-fb]').forEach(x => x.remove());
+  });
+  if (r.also && r.also.length) {
+    ai.insertAdjacentHTML('beforeend', `<div class="also">也可能是：${r.also.map(a => `<button type="button">${esc(a.office)}</button>`).join('、')}</div>`);
+    ai.querySelectorAll('.also button').forEach(x => x.addEventListener('click', () => ask(x.textContent)));
+  }
+  drawMap(card.querySelector('canvas'), r.place);
+  scrollDown();
+}
+
+// multi-stop flow: numbered list, numbered pins, one link that walks the stops in order on the 3D map
+function stopHash(s){ return s.place + (s.floor ? '.' + s.floor : ''); }
+function renderSteps(ai, r, question, steps){
+  const flow = 'flow:' + steps.map(stopHash).join('~');
+  const card = document.createElement('div'); card.className = 'card';
+  card.innerHTML = `
+    <div class="card-in">
+      <div class="where"><span class="tag">共 ${steps.length} 站</span></div>
+      <h3>${esc(r.office && steps.length ? (KB?.entries.find(e => e.id === r.entryId)?.topics[0] || '辦理流程') : '辦理流程')}</h3>
+      <p>${esc(r.answer)}</p>
+      <ol class="steps">${steps.map(s => `<li><span><b>${esc(s.office)}</b><small>${esc(B[s.place].n)}${s.floor ? ` ${s.floor}F` : '（樓層待補）'} · ${esc(s.action || '')}</small></span><a href="map.html#${stopHash(s)}">地圖</a></li>`).join('')}</ol>
+    </div>
+    <canvas class="map" aria-label="辦理路線"></canvas>
+    <div class="meta">從${ENTRIES[ENTRY].n}出發，依序走完 ${steps.length} 站</div>
+    <div class="acts"><a class="go" href="map.html#${flow}">依序帶我走 →</a><button class="ghost" type="button" data-fb="1" aria-label="有幫助">👍</button><button class="ghost" type="button" data-fb="0" aria-label="沒幫助">👎</button></div>`;
+  ai.appendChild(card);
+  card.querySelectorAll('[data-fb]').forEach(btn => btn.onclick = () => {
+    sendFeedback(r, question, btn.dataset.fb === '1');
+    card.querySelector('.acts').insertAdjacentHTML('afterend', `<div class="meta" style="padding:0 16px 12px">${btn.dataset.fb === '1' ? '謝謝！' : '收到，我們會補強這題。'}</div>`);
+    card.querySelectorAll('[data-fb]').forEach(x => x.remove());
+  });
+  drawMap(card.querySelector('canvas'), steps.map(s => s.place));
+  scrollDown();
+}
+
+/* ---------- ink-style mini map ---------- */
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function drawMap(cv, ids){
+  ids = [].concat(ids); const id = ids[0];
+  const MX0 = 90, MY0 = 20, MW = 1320, MH = 960;
+  const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.width * MH / MW * dpr);
+  const g = cv.getContext('2d'), k = cv.width / MW, X = x => (x - MX0) * k, Y = y => (y - MY0) * k;
+  const ink = css('--ink'), seal = css('--seal'), line = css('--line'), card = css('--card'), route = css('--route');
+  g.fillStyle = card; g.fillRect(0, 0, cv.width, cv.height);
+  const path = pts => { g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(X(x), Y(y)) : g.moveTo(X(x), Y(y))); g.closePath(); };
+  // roads
+  g.fillStyle = line; g.fillRect(X(MX0), Y(26), MW * k, 32 * k); g.fillRect(X(MX0), Y(905), MW * k, 75 * k); g.fillRect(X(1200), 0, 46 * k, cv.height);
+  // campus edge
+  path(CAMPUS); g.setLineDash([5 * k, 5 * k]); g.strokeStyle = ink; g.globalAlpha = .35; g.lineWidth = 2 * k; g.stroke(); g.setLineDash([]); g.globalAlpha = 1;
+  // track
+  g.beginPath(); g.ellipse(X(924), Y(557), 134 * k, 95 * k, 0, 0, Math.PI * 2); g.strokeStyle = ink; g.globalAlpha = .3; g.lineWidth = 6 * k; g.stroke(); g.globalAlpha = 1;
+  // buildings: light ink wash, target in seal red
+  for (const [bid, b] of Object.entries(B)){
+    if (!b.p) continue; path(b.p);
+    const hit = ids.includes(bid);
+    g.fillStyle = hit ? seal : ink; g.globalAlpha = hit ? .9 : .12; g.fill(); g.globalAlpha = hit ? 1 : .45; g.strokeStyle = hit ? seal : ink; g.lineWidth = (hit ? 3 : 1.5) * k; g.stroke(); g.globalAlpha = 1;
+  }
+  // start → each stop in order (dotted guide, not a walking route)
+  const GATE = ENTRIES[ENTRY].at, pts = [GATE, ...ids.map(x => B[x].at || B[x].d)];
+  g.setLineDash([2 * k, 9 * k]); g.lineCap = 'round'; g.strokeStyle = route; g.lineWidth = 6 * k;
+  g.beginPath(); g.moveTo(X(pts[0][0]), Y(pts[0][1]));
+  for (let n = 1; n < pts.length; n++){ const a = pts[n - 1], t = pts[n]; g.quadraticCurveTo(X((a[0] + t[0]) / 2 + 40), Y((a[1] + t[1]) / 2 + 40), X(t[0]), Y(t[1])); }
+  g.stroke(); g.setLineDash([]);
+  g.fillStyle = ink; g.beginPath(); g.arc(X(GATE[0]), Y(GATE[1]), 9 * k, 0, Math.PI * 2); g.fill();
+  g.font = `700 ${Math.max(11, 26 * k)}px 'LXGW WenKai TC', serif`; g.textAlign = 'center';
+  g.fillText(ENTRY === 'zhonghua' ? '中華路' : '校門', X(GATE[0]), Y(GATE[1]) + (ENTRY === 'zhonghua' ? -22 : 34) * k);
+  const labels = [];
+  ids.forEach((pid, n) => {
+    const a = B[pid].at || B[pid].d, px = X(a[0]), py = Y(a[1]) + 26 * k;
+    g.fillStyle = seal; g.beginPath(); g.arc(px, py - 26 * k, 17 * k, Math.PI, 0); g.lineTo(px, py); g.closePath(); g.fill();
+    g.fillStyle = card; g.beginPath(); g.arc(px, py - 26 * k, 10 * k, 0, Math.PI * 2); g.fill();
+    if (ids.length > 1){ g.fillStyle = seal; g.font = `700 ${Math.max(9, 16 * k)}px system-ui,sans-serif`; g.textBaseline = 'middle'; g.fillText(String(n + 1), px, py - 26 * k); g.textBaseline = 'alphabetic'; }
+    // label: try above, then left / right / below so neighbouring stops don't overlap
+    g.font = `700 ${Math.max(11, 26 * k)}px 'LXGW WenKai TC', serif`;
+    const w = g.measureText(B[pid].n).width, hgt = Math.max(11, 26 * k);
+    const tries = [[0, -52 * k, 'center'], [-24 * k, -26 * k, 'right'], [24 * k, -26 * k, 'left'], [0, 22 * k, 'center']];
+    let pick = tries[0];
+    for (const t of tries){
+      const x0 = t[2] === 'center' ? px + t[0] - w / 2 : t[2] === 'right' ? px + t[0] - w : px + t[0], y0 = py + t[1] - hgt;
+      const box = [x0 - 3, y0 - 3, x0 + w + 3, y0 + hgt + 3];
+      if (!labels.some(o => box[0] < o[2] && box[2] > o[0] && box[1] < o[3] && box[3] > o[1])){ pick = t; labels.push(box); break; }
+    }
+    g.textAlign = pick[2]; g.fillStyle = ink; g.fillText(B[pid].n, px + pick[0], py + pick[1]); g.textAlign = 'center';
+  });
+}
+</script>
+</body>
+</html>

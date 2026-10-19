@@ -1,0 +1,8 @@
+{
+  "name": "nutc-ask",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/t-rag.mjs && node tests/t-fn.mjs"
+  }
+}

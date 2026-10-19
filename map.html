@@ -1,0 +1,2049 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="國立臺中科技大學三民校區 3D 校園地圖與步行導覽。">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px/1.4 system-ui,-apple-system,sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>臺中科大 3D 校園導覽</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: full-bleed 3D campus maquette; paper-like panels pinned to the corners, a route bar at the bottom. */
+:root{
+  --bg:#E4E8E0; --panel:rgba(250,251,247,.94); --panel-solid:#FAFBF7; --ink:#15232A; --muted:#5A696E;
+  --line:rgba(21,35,42,.13); --chip:#ECEFE7; --accent:#1C5BA5; --accent-ink:#FFFFFF; --signal:#DC6A2B;
+  --shadow:0 12px 32px rgba(21,35,42,.16);
+  --c-biz:#8DB0D4; --c-design:#E3B184; --c-lang:#9DC49E; --c-info:#B3A5D6; --c-admin:#D3CEBF; --c-life:#E8C79C; --c-sport:#C7B39D; --c-other:#C9CCC2;
+  --f-display:'LXGW WenKai TC','Noto Serif TC','PingFang TC',serif;
+  --f-body:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F171B; --panel:rgba(21,30,35,.93); --panel-solid:#151E23; --ink:#E5ECEA; --muted:#93A3A8;
+  --line:rgba(229,236,234,.13); --chip:#1D282E; --accent:#78A9EA; --accent-ink:#0A1420; --signal:#F28C4E;
+  --shadow:0 12px 32px rgba(0,0,0,.45); color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0F171B; --panel:rgba(21,30,35,.93); --panel-solid:#151E23; --ink:#E5ECEA; --muted:#93A3A8;
+  --line:rgba(229,236,234,.13); --chip:#1D282E; --accent:#78A9EA; --accent-ink:#0A1420; --signal:#F28C4E;
+  --shadow:0 12px 32px rgba(0,0,0,.45); color-scheme:dark;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+#labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;left:0;top:0;transform:translate(-9999px,0);pointer-events:auto;cursor:pointer;
+  display:flex;align-items:center;gap:6px;padding:4px 9px 4px 7px;border-radius:999px;background:var(--panel);
+  border:1px solid var(--line);font-size:12.5px;font-weight:500;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.08);
+  transition:background .15s,color .15s;will-change:transform}
+.lbl .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.lbl .key{font-size:10px;color:var(--muted);display:none}
+body.show-access .lbl .key{display:inline}
+.lbl.sel{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.lbl.sel .key{color:inherit}
+.lbl.place{font-weight:400;color:var(--muted)}
+.lbl.poi{padding:2px 7px 2px 3px;font-size:11px;font-weight:400;color:var(--muted);gap:4px}
+.lbl.poi .pg{width:16px;height:16px;border-radius:4px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:700 10px/1 var(--f-mono)}
+.lbl.poi.gate .pg{background:var(--signal)}
+body.hide-mini .mini{display:none}
+body.hide-poi .lbl.poi,body.hide-labels .lbl:not(.sel):not(.poi){display:none}
+
+#hud{position:fixed;inset:0;pointer-events:none;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:calc(12px + env(safe-area-inset-top,0px)) calc(14px + env(safe-area-inset-bottom,0px))}
+.ui{pointer-events:auto}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+
+.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;padding:7px 14px 7px 8px}
+.seal{width:34px;height:34px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:700 17px/1 var(--f-display)}
+.brand b{display:block;font:700 15px/1.2 var(--f-display);letter-spacing:.02em}
+.brand small{display:block;font:500 10px/1.3 var(--f-mono);letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.modes{display:flex;padding:4px;gap:2px}
+.modes button{border:0;background:none;padding:7px 12px;border-radius:9px;cursor:pointer;font-size:13px;color:var(--muted);white-space:nowrap}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--panel-solid)}
+.modes button:focus-visible,.btn:focus-visible,.ibtn:focus-visible,.lbl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.spacer{flex:1}
+.searchbtn{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border:1px solid var(--line);color:var(--muted);min-width:0}
+.searchbtn kbd{font:500 11px/1 var(--f-mono);padding:3px 6px;border-radius:5px;background:var(--chip);color:var(--ink)}
+.ibtn{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;cursor:pointer;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);font-size:16px}
+
+.intro{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:calc(78px + env(safe-area-inset-top,0px));width:min(360px,calc(100% - 32px));padding:20px 20px 18px;display:grid;gap:12px}
+.eyebrow{font:500 10.5px/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.intro h1{margin:0;font:700 32px/1.15 var(--f-display);text-wrap:balance}
+.intro h1 em{font-style:normal;color:var(--accent)}
+.intro p{margin:0;color:var(--muted);line-height:1.7}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--chip);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:500;display:inline-flex;align-items:center;gap:6px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.signal{background:var(--signal);color:#fff;border-color:transparent}
+.btn.ghost{background:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.entry{display:grid;gap:7px}
+.entry .seg button{padding:9px 6px;font-size:13px}
+.tip{font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px;line-height:1.6}
+.tip code,.mono{font-family:var(--f-mono);font-size:12px}
+
+.mini{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:calc(78px + env(safe-area-inset-top,0px));width:272px;padding:10px 10px 8px;display:grid;gap:7px}
+.mini-head{display:flex;align-items:center;gap:7px;font-size:13px}
+.mini-head b{font-weight:700;margin-right:auto}
+.mini-dot{width:9px;height:9px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 3px color-mix(in srgb,var(--signal) 25%,transparent)}
+.mini-btn{border:1px solid var(--line);background:var(--chip);border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer}
+.mini-tg{padding:4px 7px}
+#miniCv{width:100%;aspect-ratio:1320/940;border-radius:9px;display:block;cursor:pointer;touch-action:none}
+.mini-foot{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);gap:8px}
+#miniNear{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.mini-n{font:600 11px/1 var(--f-mono);color:var(--ink);display:inline-flex;align-items:center;gap:2px}
+.mini-n i{display:inline-block;font-style:normal;color:var(--signal);transform:rotate(68deg)}
+.mini.collapsed #miniCv,.mini.collapsed .mini-foot{display:none}
+.mini-x,.mini-fab{display:none}
+.card{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:calc(78px + var(--mini-h,0px) + env(safe-area-inset-top,0px));width:min(380px,calc(100% - 32px));max-height:calc(100% - 190px - var(--mini-h,0px) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;overflow:hidden}
+.card-head{padding:18px 18px 12px;display:grid;gap:6px;border-bottom:1px solid var(--line)}
+.card-top{display:flex;align-items:center;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px 3px 7px;border-radius:999px;background:var(--chip)}
+.chip i{width:9px;height:9px;border-radius:50%}
+.card h2{margin:0;font:700 26px/1.2 var(--f-display)}
+.card h2 small{font:400 14px/1 var(--f-body);color:var(--muted);margin-left:8px}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:6px}
+.fact{background:var(--chip);border-radius:10px;padding:8px 10px;min-width:0}
+.fact dt{font-size:11px;color:var(--muted)}
+.fact dd{margin:2px 0 0;font-weight:700;font-variant-numeric:tabular-nums;font-size:14px;overflow-wrap:anywhere}
+.fact dd small{font-weight:400;color:var(--muted);font-size:11px}
+.card-dist{font-size:13px;color:var(--signal);font-weight:500;font-variant-numeric:tabular-nums}
+.card-dist:empty{display:none}
+.card-alt{justify-self:start;border:0;background:none;padding:0;color:var(--accent);font-size:12.5px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.card-body{padding:12px 18px 14px;overflow:auto;display:grid;gap:12px;min-height:0}
+.card-body p{margin:0;line-height:1.7}
+.floors{display:grid;gap:2px}
+.floors h3,.card-body h3{margin:0 0 4px;font-size:12px;font-weight:500;color:var(--muted)}
+.fl{display:grid;grid-template-columns:38px 1fr;gap:8px;align-items:baseline;padding:7px 8px;border-radius:8px;cursor:pointer;border:0;background:none;text-align:left;width:100%}
+.fl:hover{background:var(--chip)}
+.fl.on{background:var(--accent);color:var(--accent-ink)}
+.fl b{font:500 12px/1 var(--f-mono)}
+.fl span{line-height:1.55;font-size:13px}
+.src{font-size:11.5px;color:var(--muted);line-height:1.6}
+.card-foot{padding:12px 18px 16px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+.card-foot .btn{flex:1;justify-content:center;min-width:120px}
+.xbtn{margin-left:auto;border:0;background:var(--chip);width:30px;height:30px;border-radius:8px;cursor:pointer}
+
+.bl{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;align-items:flex-end;gap:10px}
+.compass{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;position:relative}
+.compass .needle{position:absolute;inset:7px;transition:transform .05s linear}
+.compass .needle::before{content:"";position:absolute;left:50%;top:0;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:21px solid var(--signal);transform:translateX(-50%)}
+.compass .needle::after{content:"";position:absolute;left:50%;bottom:0;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:21px solid var(--muted);opacity:.45;transform:translateX(-50%)}
+.compass .n{position:absolute;inset:0;pointer-events:none}
+.compass .n b{position:absolute;left:50%;top:50%;font:700 10px/1 var(--f-mono);color:var(--ink)}
+body:not(.hide-mini) .here{display:none}
+.here{padding:9px 12px;display:grid;gap:2px;cursor:pointer;text-align:left}
+.here b{font-size:13px;display:flex;align-items:center;gap:6px}
+.here b::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 4px color-mix(in srgb,var(--signal) 25%,transparent)}
+.here small{color:var(--muted);font-size:11.5px}
+
+.br{position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;justify-items:end}
+.zoom{display:grid;overflow:hidden}
+.zoom button{width:38px;height:36px;border:0;background:none;cursor:pointer;font-size:18px}
+.zoom button+button{border-top:1px solid var(--line)}
+.layers{position:absolute;right:48px;bottom:0;width:240px;padding:14px;display:grid;gap:10px}
+.layers h3{margin:0;font-size:12px;color:var(--muted);font-weight:500}
+.tg{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;cursor:pointer}
+.tg input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:flex;background:var(--chip);border-radius:9px;padding:3px}
+.seg button{flex:1;border:0;background:none;padding:6px;border-radius:7px;cursor:pointer;font-size:12.5px}
+.seg button[aria-pressed="true"]{background:var(--panel-solid);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+
+.walkbar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));width:min(560px,calc(100% - 300px));padding:10px 12px;display:grid;gap:8px}
+.wb-top{display:flex;align-items:center;gap:10px;min-width:0}
+.wb-dest{flex:1;min-width:0}
+.wb-dest b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wb-dest small{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.wb-speed{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
+.wb-speed input{flex:1;accent-color:var(--signal);min-width:0}
+.wb-speed output{font:500 12px/1 var(--f-mono);color:var(--ink);width:34px;text-align:right}
+.wb-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.wb-actions #wbPlay,.wb-actions #wbNext{flex:1;justify-content:center;min-width:120px}
+.wb-dest{min-width:0}
+.wb-alt{border:1px solid var(--signal);color:var(--signal);background:none;border-radius:10px;padding:9px 10px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.walkbar.thru #wbSub{color:var(--signal);font-weight:500}
+.walkbar.thru .progress i{animation:thru .6s ease-in-out infinite alternate}
+@keyframes thru{from{opacity:.35}to{opacity:1}}
+.progress{height:3px;border-radius:2px;background:var(--chip);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--signal)}
+.hint{font-size:11.5px;color:var(--muted);text-align:center}
+
+.joy{position:absolute;left:max(24px,calc(env(safe-area-inset-left,0px) + 12px));bottom:calc(96px + env(safe-area-inset-bottom,0px));width:116px;height:116px;border-radius:50%;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);touch-action:none}
+.joy i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:var(--signal);opacity:.9}
+
+.modal{position:fixed;inset:0;background:rgba(10,18,22,.38);display:grid;place-items:start center;padding-top:calc(12vh + env(safe-area-inset-top,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:auto;z-index:20}
+.sbox{width:min(520px,100%);overflow:hidden}
+.sbox input{width:100%;border:0;border-bottom:1px solid var(--line);background:none;padding:16px 18px;font-size:16px;outline:none;color:var(--ink);font-family:var(--f-body)}
+.sres{max-height:50vh;overflow:auto;padding:6px}
+.sr{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:0;background:none;border-radius:9px;cursor:pointer;text-align:left}
+.sr.on,.sr:hover{background:var(--chip)}
+.sr i{width:10px;height:10px;border-radius:3px;flex:none}
+.sr span{flex:1;min-width:0}
+.sr small{color:var(--muted);font-size:12px}
+.sempty{padding:16px;color:var(--muted)}
+.about{width:min(560px,100%);padding:22px;display:grid;gap:12px;max-height:76vh;overflow:auto}
+.about h2{margin:0;font:700 22px/1.3 var(--f-display)}
+.about p,.about li{margin:0;line-height:1.75;color:var(--muted)}
+.about ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.about a{color:var(--accent)}
+.about kbd{font:500 11px/1 var(--f-mono);padding:2px 5px;border-radius:4px;background:var(--chip);color:var(--ink)}
+
+.toast{position:absolute;left:50%;top:calc(80px + env(safe-area-inset-top,0px));transform:translateX(-50%);padding:9px 14px;font-weight:500;pointer-events:none;transition:opacity .25s;white-space:nowrap}
+.loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);color:var(--muted);font-family:var(--f-display);font-size:18px;z-index:30}
+
+.handle,.wb-chip,.wb-info,.card-more,.ms{display:none}
+.lbl::after{content:"";position:absolute;inset:-7px -4px}
+.wb-step{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:var(--chip);border-radius:10px;padding:9px 11px;cursor:pointer;font-size:13.5px;line-height:1.45}
+.wb-step::before{content:"↱";font:700 15px/1 var(--f-mono);color:var(--signal);flex:none}
+.wb-step::after{content:"▾";margin-left:auto;color:var(--muted);font-size:11px;flex:none}
+.wb-step[aria-expanded="true"]::after{content:"▴"}
+.wb-step b{font-weight:500}
+.wb-step small{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wb-steps{margin:0;padding:2px 0 0 22px;display:grid;gap:4px;max-height:34vh;overflow:auto;font-size:13px;line-height:1.5}
+.wb-steps li{color:var(--muted)}
+.wb-steps li.now{color:var(--ink);font-weight:500}
+.wb-steps li.done{opacity:.55}
+.wb-steps small{font-variant-numeric:tabular-nums;margin-left:6px}
+.qchips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 8px 6px}
+.qchip{border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer}
+.sgh{font-size:11.5px;color:var(--muted);padding:10px 12px 2px;letter-spacing:.04em}
+@media (max-width:760px){
+  /* phone: top = brand + search; bottom dock = compass · modes · layers; sheets float above the dock */
+  :root{--dock:60px}
+  #hud{padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px));padding-block:calc(8px + env(safe-area-inset-top,0px)) calc(10px + env(safe-area-inset-bottom,0px))}
+  .topbar{flex-wrap:nowrap;gap:8px}
+  .brand{padding:5px 10px 5px 5px;flex:none}
+  .brand small{display:none}
+  .brand b{font-size:14px}
+  .seal{width:30px;height:30px;font-size:15px;border-radius:8px}
+  .spacer{display:none}
+  .searchbtn{flex:1;padding:10px 12px;font-size:13px}
+  .searchbtn span{display:inline;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .searchbtn kbd{display:none}
+  .ibtn{width:40px;height:40px;flex:none}
+  .modes{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));height:var(--dock);align-items:stretch;padding:5px;border-radius:16px}
+  .modes button{padding:0 16px;font-size:14px;border-radius:11px;min-width:62px}
+  .ml{display:none} .ms{display:inline}
+  .card.collapsed .facts{display:none}
+  .card-foot{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px}
+  .card-foot .btn{font-size:13px}
+  .intro .tip{display:none}
+  .mini{top:calc(62px + env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));width:128px;padding:4px;gap:0}
+  .mini-head,.mini-foot{display:none}
+  .mini-x{display:grid;place-items:center;position:absolute;left:7px;top:7px;width:24px;height:24px;border-radius:50%;border:0;background:var(--panel-solid);color:var(--ink);font-size:15px;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:pointer;z-index:1}
+  .mini.collapsed{width:auto;padding:0}
+  .mini.collapsed::after,.mini.collapsed .mini-x{display:none}
+  .mini.collapsed .mini-fab{display:inline-flex;align-items:center;gap:5px;border:0;background:none;color:var(--ink);font-size:13px;font-weight:500;padding:10px 13px;cursor:pointer}
+  .mini::after{content:"N";position:absolute;right:8px;top:6px;font:700 9px/1 var(--f-mono);color:var(--signal)}
+  body.card-open .mini{opacity:.9}
+  .intro .row{display:grid;grid-template-columns:1fr 1fr}
+  .intro .row .btn{justify-content:center;padding:11px 10px}
+  #startTour{grid-column:1/-1}
+  .intro p{font-size:13.5px}
+  .wb-step{font-size:13px;padding:8px 10px}
+  .bl{bottom:calc(10px + env(safe-area-inset-bottom,0px));left:max(10px,env(safe-area-inset-left,0px))}
+  .compass{width:var(--dock);height:var(--dock);cursor:pointer}
+  .here,.zoom{display:none}
+  .br{bottom:calc(10px + env(safe-area-inset-bottom,0px));right:max(10px,env(safe-area-inset-right,0px))}
+  .br .ibtn{width:var(--dock);height:var(--dock);border-radius:16px;font-size:20px}
+  .layers{right:0;bottom:calc(var(--dock) + 10px);width:min(260px,calc(100vw - 20px));max-height:60vh;overflow:auto}
+  #openAbout{display:none}
+  .layers .about-link{display:flex}
+  .sheet-pos,.intro,.card,.walkbar{position:absolute;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));width:auto;top:auto;transform:none;bottom:calc(var(--dock) + 20px + env(safe-area-inset-bottom,0px))}
+  .intro{padding:16px;gap:10px;max-height:62%;overflow:auto}
+  .intro h1{font-size:24px}
+  .intro .legend{display:none}
+  .card{max-height:calc(100% - var(--dock) - 120px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+  .handle{display:block;width:100%;height:22px;border:0;background:none;cursor:grab;position:relative;flex:none;touch-action:none}
+  .handle::after{content:"";position:absolute;left:50%;top:9px;width:40px;height:4px;margin-left:-20px;border-radius:2px;background:var(--line)}
+  .card-head{padding:0 16px 10px;gap:4px}
+  .card h2{font-size:22px}
+  .facts{gap:6px}
+  .fact{padding:6px 8px}
+  .fact dd{font-size:13px}
+  .card.collapsed .card-body{display:none}
+  .card.collapsed .card-head{border-bottom:0}
+  .card-more{display:block;border:0;background:none;color:var(--accent);font-size:12.5px;padding:2px 0 0;text-align:left;cursor:pointer}
+  .card-body{padding:10px 16px 12px}
+  .card-foot{padding:10px 16px 12px}
+  .card-foot .btn{min-width:0;padding:11px 10px}
+  .walkbar{padding:8px 10px;gap:6px}
+  .wb-top{gap:8px}
+  .wb-actions .btn{padding:11px 12px}
+  .wb-actions #wbPlay,.wb-actions #wbNext{min-width:0}
+  .wb-dest b{font-size:13px}
+  .wb-speed,.hint{display:none}
+  .wb-chip{display:inline-flex;border:1px solid var(--line);background:var(--chip);border-radius:10px;padding:9px 9px;font:500 12px/1 var(--f-mono);cursor:pointer}
+  body.has-sel .wb-info{display:inline-flex;border:1px solid var(--line);background:var(--chip);border-radius:10px;padding:9px 10px;cursor:pointer;font-size:12.5px}
+  body.card-open .walkbar{display:none}
+  .card-foot .btn#cardGo{font-size:14px}
+  body.card-open .joy,body.intro-open .joy{display:none}
+  .joy{width:104px;height:104px;left:max(18px,calc(env(safe-area-inset-left,0px) + 10px));bottom:calc(var(--dock) + 96px + env(safe-area-inset-bottom,0px))}
+  body:not(.has-route) .joy{bottom:calc(var(--dock) + 26px + env(safe-area-inset-bottom,0px))}
+  .toast{top:calc(64px + env(safe-area-inset-top,0px));max-width:calc(100% - 20px);white-space:normal;text-align:center}
+  .modal{padding-top:calc(10px + env(safe-area-inset-top,0px));padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+  .sres{max-height:60vh}
+  .lbl{font-size:11.5px;padding:3px 8px 3px 6px}
+  .lbl .dot{width:7px;height:7px}
+}
+@media (max-width:760px) and (max-height:480px){ /* phone landscape */
+  .intro,.card{left:auto;width:min(360px,52%);top:calc(56px + env(safe-area-inset-top,0px));bottom:calc(var(--dock) + 20px + env(safe-area-inset-bottom,0px));max-height:none}
+  .walkbar{right:auto;width:min(380px,55%)}
+}
+@media (max-width:360px){ .modes button{min-width:0;padding:0 10px;font-size:12.5px} .brand b{display:none} .brand{padding:5px} }
+.about-link{display:none;border:0;background:none;color:var(--accent);padding:0;cursor:pointer;font-size:13px}
+body.sketch .lbl{font-family:var(--f-display);font-size:14px;border:1.4px solid color-mix(in srgb,var(--ink) 55%,transparent);box-shadow:2px 2px 0 color-mix(in srgb,var(--ink) 18%,transparent);border-radius:7px}
+body.sketch .lbl.poi{font-size:12.5px}
+body.sketch .panel{border:1.4px solid color-mix(in srgb,var(--ink) 40%,transparent);box-shadow:3px 3px 0 color-mix(in srgb,var(--ink) 12%,transparent)}
+body.sketch .btn,body.sketch .modes button,body.sketch .wb-step b,body.sketch .card-dist,body.sketch .fl span,body.sketch .tip,body.sketch .intro p{font-family:var(--f-display)}
+body.sketch .modes button,body.sketch .btn{font-size:14.5px}
+body.sketch .intro p,body.sketch .card-body p{font-size:15px;line-height:1.75}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="loading" id="loading">正在搭建校園模型…</div>
+<canvas id="scene" tabindex="0" aria-label="臺中科大三民校區 3D 模型"></canvas>
+<div id="labels"></div>
+
+<div id="hud">
+  <div class="topbar">
+    <a class="brand panel ui" href="index.html" style="text-decoration:none;color:inherit" aria-label="回到「問」首頁">
+      <div class="seal" aria-hidden="true">問</div>
+      <div><b data-en="NUTC · Sanmin Campus">國立臺中科技大學</b><small>← 回到「問」</small></div>
+    </a>
+    <div class="modes panel ui" role="group" aria-label="檢視模式">
+      <button id="m-overview" aria-pressed="true"><span class="ml" data-en="3D Aerial">立體鳥瞰</span><span class="ms" data-en="Aerial">鳥瞰</span></button>
+      <button id="m-plan" aria-pressed="false"><span class="ml" data-en="Site Plan">配置平面</span><span class="ms" data-en="Map">平面</span></button>
+      <button id="m-walk" aria-pressed="false"><span class="ml" data-en="Walk">角色步行</span><span class="ms" data-en="Walk">步行</span></button>
+    </div>
+    <div class="spacer"></div>
+    <button class="searchbtn panel ui" id="openSearch" aria-label="搜尋建物或教室">⌕ <span data-en="Search places or room numbers">搜尋建物或教室編號</span><kbd>/</kbd></button>
+    <button class="ibtn ui" id="langBtn" aria-label="Switch to English" title="中文 / English" style="font:600 12.5px/1 var(--f-mono)">EN</button>
+    <button class="ibtn ui" id="resetBtn" aria-label="一鍵還原" title="一鍵還原">↺</button>
+    <button class="ibtn ui" id="openAbout" aria-label="關於這張校園圖">?</button>
+  </div>
+
+  <section class="intro panel ui" id="intro">
+    <div class="eyebrow" data-en="Sanmin Campus · between Sanmin Rd. and Zhonghua Rd.">三民校區 · 三民路與中華路之間</div>
+    <h1 data-en="Explore &lt;em&gt;NUTC&lt;/em&gt;">走進<em>臺中科大</em></h1>
+    <p data-en="Pick a destination to see a yellow route, then tap “Follow me” to start walking.">點選目的地會先畫出黃色路線，按「跟我走」就開始導航。</p>
+    <div class="entry">
+      <div class="eyebrow" data-en="Where are you entering from?">你從哪裡進校園？</div>
+      <div class="seg" role="group" aria-label="進校園的入口"><button class="en-sanmin" aria-pressed="true" data-en="Sanmin Rd. gate">三民路校門</button><button class="en-zhonghua" aria-pressed="false" data-en="Zhonghua Rd. · Zhongshang">中華路・中商大樓</button></div>
+    </div>
+    <div class="row">
+      <button class="btn signal" id="startTour" data-en="▶ New-student tour">▶ 跟著新生路線走</button>
+      <button class="btn" id="introSearch" data-en="⌕ Find a place">⌕ 找建物或教室</button>
+      <button class="btn ghost" id="freeExplore" data-en="Explore freely">自由探索</button>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="tip" data-en="Type a room number such as &lt;code&gt;3705&lt;/code&gt;: the 1st digit is the building, the 2nd is the floor.">輸入教室編號可直接找到大樓與樓層，例如 <code>3705</code>：第 1 碼是大樓，第 2 碼是樓層。</div>
+  </section>
+
+  <div class="mini panel ui" id="mini">
+    <div class="mini-head"><span class="mini-dot"></span><b data-en="You are here">你在這裡</b><button class="mini-btn" id="miniHome" data-en="Find me">回到人物</button><button class="mini-btn mini-tg" id="miniToggle" aria-label="收合小地圖">▾</button></div>
+    <button class="mini-x" id="miniX" aria-label="收合小地圖">×</button>
+    <button class="mini-fab" id="miniFab">◰ <span data-en="Map">小地圖</span></button>
+    <canvas id="miniCv" aria-label="校園小地圖"></canvas>
+    <div class="mini-foot"><span id="miniNear"></span><span class="mini-n"><i id="miniNArrow">↑</i>N</span></div>
+  </div>
+
+  <aside class="card panel ui" id="card" hidden aria-live="polite"></aside>
+
+  <div class="bl">
+    <div class="compass panel ui" title="指北針" aria-label="指北針"><div class="needle" id="needle"></div><div class="n" id="nlabel"><b>N</b></div></div>
+    <button class="here panel ui" id="hereBtn"><b data-en="You are here">你在這裡</b><small id="hereTxt">校門附近 · 點這裡回到人物</small></button>
+  </div>
+
+  <div class="br">
+    <div class="zoom panel ui">
+      <button id="zin" aria-label="放大">+</button>
+      <button id="zout" aria-label="縮小">−</button>
+    </div>
+    <button class="ibtn ui" id="layersBtn" aria-label="圖層與設定" aria-expanded="false">◫</button>
+    <div class="layers panel ui" id="layers" hidden>
+      <h3 data-en="Layers">圖層</h3>
+      <label class="tg"><span data-en="Building names">建物名稱</span><input type="checkbox" id="ly-labels" checked></label>
+      <label class="tg"><span data-en="Parking &amp; entrances">停車場與出入口</span><input type="checkbox" id="ly-poi" checked></label>
+      <label class="tg"><span data-en="Show ID-card buildings">標出門禁大樓</span><input type="checkbox" id="ly-access"></label>
+      <label class="tg"><span data-en="Surrounding blocks">周邊街廓</span><input type="checkbox" id="ly-city" checked></label>
+      <label class="tg"><span data-en="Mini-map">小地圖</span><input type="checkbox" id="ly-mini" checked></label>
+      <h3 data-en="Style">風格</h3>
+      <div class="seg" role="group" aria-label="風格"><button id="st-model" aria-pressed="true" data-en="3D model">模型</button><button id="st-sketch" aria-pressed="false" data-en="Pencil sketch">鉛筆手繪</button></div>
+      <h3 data-en="Starting entrance">出發入口</h3>
+      <div class="seg" role="group" aria-label="出發入口"><button class="en-sanmin" aria-pressed="true" data-en="Sanmin Rd.">三民路</button><button class="en-zhonghua" aria-pressed="false" data-en="Zhonghua Rd.">中華路</button></div>
+      <h3 data-en="Character">角色</h3>
+      <div class="seg" role="group" aria-label="角色"><button id="ch-boy" aria-pressed="true" data-en="Boy">男生</button><button id="ch-girl" aria-pressed="false" data-en="Girl">女生</button></div>
+      <h3 data-en="College colors">學院色彩</h3>
+      <div class="legend" id="legend2"></div>
+      <button class="about-link" id="aboutLink" data-en="About this map &amp; controls →">關於這張校園圖與操作說明 →</button>
+    </div>
+  </div>
+
+  <div class="walkbar panel ui" id="walkbar" hidden>
+    <div class="wb-top">
+      <div class="wb-dest"><b id="wbTitle">前往</b><small id="wbSub"></small></div>
+      <button class="xbtn" id="wbClose" aria-label="結束導航">×</button>
+    </div>
+    <div class="progress"><i id="wbProg"></i></div>
+    <button class="wb-step" id="wbStep" aria-expanded="false"></button>
+    <ol class="wb-steps" id="wbSteps" hidden></ol>
+    <div class="wb-actions">
+      <button class="btn signal" id="wbPlay">▶ 跟我走</button>
+      <button class="btn" id="wbNext" hidden>下一站 →</button>
+      <button class="wb-chip" id="wbChip" aria-label="移動速度">5×</button>
+      <button class="wb-info" id="wbInfo">資訊</button>
+    </div>
+    <div class="wb-speed"><label for="speed" data-en="Speed">移動速度</label><input type="range" id="speed" min="0.5" max="20" step="0.5" value="5"><output id="speedOut">5×</output></div>
+    <div class="hint" data-en="W A S D or arrow keys to move · Shift to run · tap the ground to walk there">W A S D 或方向鍵接手移動 · Shift 加速 · 點地面可改走到那裡</div>
+  </div>
+
+  <div class="joy ui" id="joy" hidden aria-label="移動搖桿"><i id="knob"></i></div>
+  <div class="toast panel" id="toast" style="opacity:0"></div>
+</div>
+
+<div class="modal" id="searchModal" hidden>
+  <div class="sbox panel" role="dialog" aria-label="搜尋">
+    <input id="q" type="search" data-en-ph="Building, department, office or room number (e.g. 3705)" placeholder="建物、系所、單位或教室編號（如 3705）" autocomplete="off">
+    <div class="sres" id="sres"></div>
+  </div>
+</div>
+
+<div class="modal" id="aboutModal" hidden>
+  <div class="about panel" role="dialog" aria-label="關於這張校園圖">
+    <h2 data-en="About this map">關於這張校園圖</h2>
+    <p data-en="A simplified 3D model of the Sanmin Campus for finding your way. Building names and positions follow the official campus maps; orientation follows Google satellite imagery.">這是三民校區的 3D 示意模型，用來找路和認識校園。建物位置與名稱依校方校園配置圖、立體導覽圖核對，方位對照 Google 衛星影像。</p>
+    <ul>
+      <li data-en="Floor counts and units for Zhongke, Changming, Hanying, Hongye and Qixiu buildings come from the classroom floor plans dated Aug 10, 2021; some units may have moved.">中科大樓（原中正大樓）、昌明樓、翰英樓、弘業樓、奇秀樓的樓層數與各層單位，取自 110 年 8 月 10 日〈上課教室平面圖〉，部分單位可能已搬遷。</li>
+      <li data-en="Heights of other buildings are marked “~” and estimated from imagery.">其他大樓的高度標示為「約」，是依影像估計的示意值。</li>
+      <li data-en="Facades, windows and roofs are simplified, not the real appearance.">立面、窗戶與屋頂都是簡化造型，不是實際建築外觀。</li>
+      <li data-en="Walking times assume 1.3 m/s; follow on-site signs for the actual way.">步行時間以每秒 1.3 公尺估算，實際路線請以現場指標為準。</li>
+    </ul>
+    <p data-en="Controls: drag to rotate, right-drag or Shift+drag to pan, scroll to zoom. &lt;kbd&gt;W A S D&lt;/kbd&gt; or arrow keys move the character, &lt;kbd&gt;Shift&lt;/kbd&gt; runs, &lt;kbd&gt;/&lt;/kbd&gt; searches, &lt;kbd&gt;Esc&lt;/kbd&gt; closes. On phones use the joystick at the bottom left.">操作：拖曳旋轉、右鍵或 Shift＋拖曳平移、滾輪縮放。<kbd>W A S D</kbd> 或方向鍵移動人物，<kbd>Shift</kbd> 加速，<kbd>/</kbd> 搜尋，<kbd>Esc</kbd> 關閉視窗。手機上可用左下角搖桿。</p>
+    <p><a href="https://www.google.com/maps/place/National+Taichung+University+of+Science+and+Technology/@24.1498277,120.6817348,1130m/data=!3m1!1e3" target="_blank" rel="noopener" data-en="Open in Google Maps ↗">在 Google 地圖開啟 ↗</a>　<a href="https://www.nutc.edu.tw/" target="_blank" rel="noopener" data-en="NUTC website ↗">臺中科大官網 ↗</a></p>
+    <div class="row"><button class="btn primary" id="closeAbout" data-en="Got it">知道了</button></div>
+  </div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ================= data ================= */
+const S = 0.37;           // meters per plan pixel (gate → 中技大樓 ≈ 350 m on foot, per campus guide)
+const FLOOR_H = 3.6;
+const W = (px, py, y = 0) => new THREE.Vector3((px - 640) * S, y, (py - 500) * S);
+const R = (a, b, c, d) => [[a, b], [c, b], [c, d], [a, d]];
+const $ = s => document.querySelector(s);
+
+const GROUPS = {
+  biz:    { name: '商學院', v: '--c-biz' },
+  design: { name: '設計學院', v: '--c-design' },
+  lang:   { name: '語文學院', v: '--c-lang' },
+  info:   { name: '資訊流通・智慧產業學院', v: '--c-info' },
+  admin:  { name: '行政與共同教學', v: '--c-admin' },
+  life:   { name: '學生生活', v: '--c-life' },
+  sport:  { name: '體育', v: '--c-sport' },
+  other:  { name: '其他', v: '--c-other' },
+};
+const SRC_FLOORS = '樓層與單位依 110 年 8 月 10 日〈上課教室平面圖〉，部分單位可能已搬遷。';
+
+const PLACES = [
+  { id:'gate', name:'校門', kind:'place', group:'admin', at:[630,902], door:[630,888],
+    note:'三民路三段 129 號主要出入口，旁邊是警衛室。往左沿三民路走、過 7-ELEVEN 後左轉錦平街，約 350 公尺可到中技大樓。' },
+  { id:'xingzheng', name:'行政大樓', group:'admin', floors:6, est:true, access:true, poly:R(412,765,498,830), door:[512,798],
+    note:'學校行政單位集中的大樓，緊鄰花園廣場，室內與資訊館相通，可從這裡進入資訊館。各單位所在樓層待補。' },
+  { id:'xunxi', name:'資訊館', alt:'資訊大樓', group:'info', floors:12, est:true, access:true,
+    poly:[[318,758],[412,758],[412,830],[498,830],[498,888],[318,888]], door:[306,830],
+    doors:[ { at:[306,830], label:'資訊館正門' }, { at:[512,798], label:'從行政大樓進入，內部相通' }, { at:[395,751], label:'中科大樓側入口（兩棟之間）' } ],
+    note:'資訊流通學院與智慧產業學院所在（總務處資料稱「資訊大樓」）。建築較複雜，共有 3 處入口：資訊館正門、從行政大樓進入後內部相通，以及中科大樓與資訊館之間的側入口。地下室是車牌辨識的機車停車場，由西側汽機車車道進出。' },
+  { id:'zhongke', name:'中科大樓', alt:'原中正大樓', group:'lang', floors:9, access:true, code:3,
+    poly:[[340,540],[380,540],[380,560],[435,560],[435,575],[495,575],[495,715],[435,715],[435,745],[315,745],[315,575],[340,575]], door:[508,650],
+    note:'語文學院主要大樓，舊稱中正大樓。國貿系、國際事務處、研發處、語言中心也在這裡。全校普通教室最多，共 41 間。南側與資訊館之間有入口可直接走到資訊館。',
+    fl:[
+      [1,'閱覽室、OK 便利超商、國際事務處、校務研究中心、環安中心'],
+      [2,'進修部學生事務組、註冊組、課務組、教務長室、教學與學習資源中心'],
+      [3,'研究發展處、通識中心、綜合業務組、智產系電腦教室、語文學院辦公室'],
+      [4,'語言中心、語言教室、自學室、語文學院專業教室'],
+      [5,'應用英語系辦公室、情境教室、普通教室 9 間'],
+      [6,'應用日語系辦公室、日本文化教室、普通教室 8 間'],
+      [7,'國際貿易系辦公室、國貿系專業教室、普通教室 10 間'],
+      [8,'3812 國際會議廳、國貿系會議室、國貿系電腦教室'],
+      [9,'應用中文系辦公室、華語中心、普通教室 4 間'] ] },
+  { id:'plaza', name:'花園廣場', kind:'place', group:'other', at:[632,735], door:[600,760],
+    note:'校門進來的中軸廣場，中間是噴水池與水道。往北走到底是昌明樓。' },
+  { id:'changming', name:'昌明樓', group:'design', floors:5, access:true, code:4,
+    poly:[[513,455],[575,455],[575,505],[685,505],[685,455],[745,455],[745,595],[685,595],[685,565],[575,565],[575,595],[513,595]], door:[630,584],
+    note:'設計學院主要大樓，H 形配置。1 樓集中學務處各組、健康中心與校安中心。',
+    fl:[
+      [1,'學務長室、生活輔導組、衛保組、健康中心、校安中心、教官室、實習與就業輔導組、服務學習輔導組'],
+      [2,'演講廳、創意商品設計系辦公室、設計學院專業教室、普通教室 4 間'],
+      [3,'室內設計系辦公室、室設系專業教室、分組教室、普通教室 1 間'],
+      [4,'多媒體設計系辦公室、商設所、設計教室、碩士班研究室'],
+      [5,'商設所系辦公室、MAC／PC 電腦教室、攝影棚'] ] },
+  { id:'xuehuo', name:'學生活動中心', group:'life', floors:4, est:true, access:true, poly:R(402,365,485,520), door:[498,440],
+    note:'社團與學生活動空間。各樓層用途待補。' },
+  { id:'zhongshang', name:'中商大樓', alt:'圖書館', group:'biz', floors:10, est:true, access:true, poly:R(775,97,912,285), door:[843,302],
+    doors:[ { at:[843,302], label:'南側入口（校園內）' }, { at:[843,90], label:'北側入口（中華路）' } ], onlyDoors:true, preferThrough:true,
+    note:'商學院所在大樓，圖書館也在這裡，普通教室 27 間。北側面向中華路，南側面向校園，<b>可以直接穿越大樓</b>：從中華路走進北側入口，穿過大樓從南側出來就進到校園。對外收費停車位也在這裡，車輛由中華路進入。' },
+  { id:'hanying', name:'翰英樓', group:'admin', floors:4, code:5, poly:R(752,352,1055,420), door:[820,435],
+    note:'以普通教室為主，共 37 間，面向運動場。',
+    fl:[ [1,'普通教室（5101–5111）、教授休息室'], [2,'普通教室 5201–5211'], [3,'普通教室 5301–5311'], [4,'普通教室 5401–5411、專業教室'] ] },
+  { id:'bball', name:'籃球場', kind:'place', group:'sport', at:[656,382], door:[656,428],
+    note:'兩面全場籃球場，位在昌明樓北側、靠近中商大樓這一邊。' },
+  { id:'vball', name:'排球場', kind:'place', group:'sport', at:[569,377], door:[569,428],
+    note:'兩面排球場，位在學生活動中心東側、昌明樓北側。' },
+  { id:'tennis', name:'網球場', kind:'place', group:'sport', at:[924,557], door:[924,610],
+    note:'位在運動場跑道中間的網球場，從跑道內側進出。' },
+  { id:'track', name:'運動場', kind:'place', group:'sport', at:[924,472], door:[924,472],
+    note:'田徑跑道環繞，中間是網球場。北側是翰英樓，南側是體育館與奇秀樓。' },
+  { id:'gym', name:'體育館', group:'sport', floors:3, est:true, roof:'barrel', poly:R(810,685,912,875), door:[861,676],
+    note:'室內運動場館，拱形屋頂。西側與弘業樓相鄰。' },
+  { id:'qixiu', name:'奇秀樓', group:'sport', floors:4, code:8, poly:R(912,700,1088,770), door:[1000,783],
+    note:'體育室與軍護、通識專業教室所在。',
+    fl:[ [1,'體育室、器材室'], [2,'教授研究室'], [3,'體育韻律教室、通識專業教室、軍護專業教室'], [4,'軍護專業教室'] ] },
+  { id:'hongye', name:'弘業樓', group:'info', floors:9, access:true, code:6, poly:R(752,680,783,885), door:[740,780],
+    note:'流通管理系所在，普通教室 16 間。細長量體，西側面向花園廣場。',
+    fl:[ [2,'流通管理系辦公室、會議室、研討室'], [3,'研究室'], [4,'研究室、茶水間'], [5,'普通教室、資訊管理系研究室'], [6,'普通教室'], [7,'普通教室、多功能研討室'], [8,'普通教室、研究生研究室'], [9,'流通管理系研究室與實驗室、研究生研究室'] ] },
+  { id:'girls', name:'女生宿舍', group:'life', floors:12, est:true, poly:R(1098,352,1162,600), door:[1181,480],
+    note:'學生宿舍，非住宿生請勿進入。出入口面向錦平街側。' },
+  { id:'boys', name:'男生宿舍', group:'life', floors:9, est:true, poly:R(1105,615,1160,770), door:[1181,690],
+    note:'學生宿舍，非住宿生請勿進入。' },
+  { id:'zhongji', name:'中技大樓', group:'biz', floors:8, est:true, access:true, poly:R(1293,440,1368,620), door:[1330,636],
+    note:'商學院所在大樓，位於錦平街對面，普通教室 13 間。從校門往左沿三民路走，過 7-ELEVEN 後左轉錦平街，約 350 公尺。' },
+  { id:'incub', name:'創新育成中心', group:'other', floors:3, est:true, poly:R(107,778,187,890), door:[199,840],
+    note:'位於西側汽機車車道旁。各樓層用途待補。' },
+];
+const BY = Object.fromEntries(PLACES.map(p => [p.id, p]));
+/* ---------- English content (bilingual toggle) ---------- */
+let LANG = 'zh';
+const DEFAULT_STYLE = 'model';
+let STYLE = DEFAULT_STYLE;
+const L = (zh, en) => LANG === 'en' ? en : zh;
+const EN_DATA = {
+  gate: { n:'Main Gate', note:'Main entrance at No. 129, Sec. 3, Sanmin Rd., with the guard booth beside it. Turn left along Sanmin Rd., pass 7-Eleven and turn left onto Jinping St. to reach Zhongji Building in about 350 m.' },
+  xingzheng: { n:'Administration Building', note:'Home to the university’s administrative offices, next to the Garden Plaza. It connects indoors to the Information Building. Office floors to be added.' },
+  xunxi: { n:'Information Building', note:'Home to the College of Information and Distribution Science and the College of Intelligence. It has three entrances: the main entrance, via the Administration Building (connected indoors), and a side entrance between Zhongke Building and this building. The basement is a scooter park with plate recognition, reached from the west driveway.',
+    doors:['Main entrance', 'Via Administration Building (connected indoors)', 'Side entrance from Zhongke Building'] },
+  zhongke: { n:'Zhongke Building', alt:'formerly Zhongzheng Building', note:'Main building of the College of Languages, formerly called the Zhongzheng Building. International Business, the Office of International Affairs, the R&D Office and the Language Center are here too. It has the most general classrooms on campus (41). An entrance on its south side leads straight to the Information Building.',
+    fl:['Reading room, OK Mart, Office of International Affairs, Institutional Research Center, Environmental Safety Center',
+        'Continuing Education Student Affairs, Registration and Curriculum, Dean of Academic Affairs, Teaching & Learning Resources Center',
+        'Office of R&D, General Education Center, General Affairs Section, IP department computer lab, College of Languages office',
+        'Language Center, language classrooms, self-study room, College of Languages specialty classrooms',
+        'Dept. of Applied English office, scenario classroom, 9 general classrooms',
+        'Dept. of Applied Japanese office, Japanese culture classroom, 8 general classrooms',
+        'Dept. of International Business office, IB specialty classroom, 10 general classrooms',
+        '3812 International Conference Hall, IB meeting room, IB computer lab',
+        'Dept. of Applied Chinese office, Chinese Language Center, 4 general classrooms'] },
+  plaza: { n:'Garden Plaza', note:'The central plaza inside the main gate, with a fountain and water channel. Walk straight north to reach Changming Building.' },
+  changming: { n:'Changming Building', note:'Main building of the College of Design, laid out in an H shape. The 1st floor houses the Student Affairs sections, the Health Center and the Campus Security Center.',
+    fl:['Dean of Student Affairs, Student Life, Health Section, Health Center, Campus Security Center, Military Instructors, Career Services, Service Learning',
+        'Lecture hall, Dept. of Creative Product Design office, College of Design specialty classrooms, 4 general classrooms',
+        'Dept. of Interior Design office and specialty classrooms, group classrooms, 1 general classroom',
+        'Dept. of Multimedia Design office, Graduate Institute of Commercial Design, design classrooms, graduate study rooms',
+        'Commercial Design graduate office, Mac/PC labs, photo studio'] },
+  xuehuo: { n:'Student Activity Center', note:'Space for clubs and student activities. Floor uses to be added.' },
+  zhongshang: { n:'Zhongshang Building', alt:'Library', note:'Home to the College of Business and the Library, with 27 general classrooms. It faces Zhonghua Rd. on the north and the campus on the south, and <b>you can walk straight through it</b>: enter from Zhonghua Rd. on the north side and leave on the south side into campus. Public paid parking is here too, with vehicle access from Zhonghua Rd.',
+    doors:['South entrance (campus side)', 'North entrance (Zhonghua Rd.)'] },
+  bball: { n:'Basketball Courts', note:'Two full basketball courts north of Changming Building, on the Zhongshang Building side.' },
+  vball: { n:'Volleyball Courts', note:'Two volleyball courts east of the Student Activity Center, north of Changming Building.' },
+  hanying: { n:'Hanying Building', note:'Mostly general classrooms (37), facing the sports field.',
+    fl:['General classrooms 5101–5111, faculty lounge', 'General classrooms 5201–5211', 'General classrooms 5301–5311', 'General classrooms 5401–5411, specialty classroom'] },
+  tennis: { n:'Tennis Courts', note:'Tennis courts in the middle of the sports field, reached from the inside of the track.' },
+  track: { n:'Sports Field', note:'A running track with tennis courts in the middle, Hanying Building to the north, and the Gymnasium and Qixiu Building to the south.' },
+  gym: { n:'Gymnasium', note:'Indoor sports hall with an arched roof, next to Hongye Building on the west.' },
+  qixiu: { n:'Qixiu Building', note:'Physical Education Office plus military training and general education classrooms.',
+    fl:['PE Office, equipment room', 'Faculty offices', 'Dance studio, general education classroom, military training classroom', 'Military training classrooms'] },
+  hongye: { n:'Hongye Building', note:'Home to the Dept. of Distribution Management, with 16 general classrooms. A long, narrow building facing the Garden Plaza on the west.',
+    fl:['Dept. of Distribution Management office, meeting room, seminar room', 'Research offices', 'Research offices, pantry', 'General classrooms, Information Management research room', 'General classrooms', 'General classrooms, multipurpose seminar room', 'General classrooms, graduate study room', 'Distribution Management research rooms and labs, graduate study room'] },
+  girls: { n:'Women’s Dormitory', note:'Student housing; non-residents please do not enter. The entrance faces Jinping St.' },
+  boys: { n:'Men’s Dormitory', note:'Student housing; non-residents please do not enter.' },
+  zhongji: { n:'Zhongji Building', note:'Home to the College of Business, across Jinping St., with 13 general classrooms. From the main gate, turn left along Sanmin Rd., pass 7-Eleven and turn left onto Jinping St.: about 350 m.' },
+  incub: { n:'Innovation Incubation Center', note:'Next to the west driveway. Floor uses to be added.' },
+};
+for (const p of PLACES){ const e = EN_DATA[p.id] || {}; p.en = e.n || p.name; p.enAlt = e.alt || ''; p.enNote = e.note || p.note; p.enFl = e.fl || null; p.enDoors = e.doors || null; }
+const GROUPS_EN = { biz:'College of Business', design:'College of Design', lang:'College of Languages', info:'Info & Distribution · Intelligence', admin:'Admin & shared teaching', life:'Student life', sport:'Sports', other:'Other' };
+const gname = k => L(GROUPS[k].name, GROUPS_EN[k]);
+const nm = p => L(p.name, p.en);
+const SRC_FLOORS_EN = 'Floors and units come from the classroom floor plans dated Aug 10, 2021; some units may have moved.';
+
+const CODE = { 3:'zhongke', 4:'changming', 5:'hanying', 6:'hongye', 8:'qixiu' };
+const ENTRIES = {
+  sanmin:   { name:'三民路校門', en:'the Sanmin Rd. gate', short:'三民路', at:[630,878] },
+  zhonghua: { name:'中華路入口（中商大樓）', en:'the Zhonghua Rd. entrance (Zhongshang Bldg.)', short:'中華路', at:[843,72] },
+};
+const TOURS = {
+  sanmin:   ['gate','xingzheng','xunxi','zhongke','plaza','changming','xuehuo','zhongshang','hanying','track','tennis','gym','qixiu','hongye','zhongji'],
+  zhonghua: ['zhongshang','hanying','track','tennis','changming','xuehuo','zhongke','xunxi','xingzheng','plaza','gate','hongye','gym','qixiu','zhongji'],
+};
+let TOUR = TOURS.sanmin;
+const POIS = [
+  { name:'中華路入口', en:'Zhonghua Rd. entrance', g:'⇣', at:[843,50], gate:true }, { name:'機車停車場', en:'Scooter parking', g:'P', at:[700,190] }, { name:'汽車停車場', en:'Car parking', g:'P', at:[1015,190] },
+  { name:'機車停車場', en:'Scooter parking', g:'P', at:[228,640] }, { name:'汽機車車道', en:'Vehicle driveway', g:'⇣', at:[272,915], gate:true },
+  { name:'機車停車場', en:'Scooter parking', g:'P', at:[1085,845] }, { name:'車道入口', en:'Driveway entrance', g:'⇣', at:[1190,800], gate:true },
+  { name:'中技停車場', en:'Zhongji parking', g:'P', at:[1330,680] }, { name:'7-ELEVEN（校外）', en:'7-Eleven (off campus)', g:'7', at:[1165,935] },
+  { name:'往中友百貨', en:'To Chungyo Dept. Store', g:'→', at:[1470,935] }, { name:'往臺中車站', en:'To Taichung Station', g:'←', at:[60,935] },
+];
+
+/* ================= geometry helpers ================= */
+function pip(x, y, poly){ let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++){ const [xi, yi] = poly[i], [xj, yj] = poly[j]; if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) c = !c; } return c; }
+function segD(px, py, ax, ay, bx, by){ const dx = bx - ax, dy = by - ay; const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy || 1))); return Math.hypot(ax + t * dx - px, ay + t * dy - py); }
+function polyD(px, py, poly){ let d = 1e9; for (let i = 0; i < poly.length; i++){ const a = poly[i], b = poly[(i + 1) % poly.length]; d = Math.min(d, segD(px, py, a[0], a[1], b[0], b[1])); } return d; }
+function centroid(poly){ let x = 0, y = 0; poly.forEach(p => { x += p[0]; y += p[1]; }); return [x / poly.length, y / poly.length]; }
+function mulberry(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const CAMPUS = [[105,905],[105,775],[140,590],[300,530],[365,330],[720,330],[720,58],[1000,58],[1000,330],[1200,330],[1200,905]];
+const SCHOOL = [[95,58],[720,58],[720,330],[365,330],[300,530],[140,590],[95,600]];
+const STRIPS = [[40,905,1480,948],[1200,40,1246,948],[120,26,1480,58],[1246,410,1396,905]]; // 三民路 / 錦平街 / 中華路 / 中技街廓
+const FENCES = [ { a:[105,905], b:[1200,905], gaps:[[248,296],[580,682]] }, { a:[1200,330], b:[1200,905], gaps:[[778,822]] } ];
+function inArea(px, py){ if (pip(px, py, CAMPUS)) return true; return STRIPS.some(([a, b, c, d]) => px >= a && px <= c && py >= b && py <= d); }
+function onFence(px, py){
+  for (const f of FENCES){
+    if (segD(px, py, f.a[0], f.a[1], f.b[0], f.b[1]) > 3.2) continue;
+    const horiz = f.a[1] === f.b[1]; const t = horiz ? px : py;
+    if (!f.gaps.some(([g0, g1]) => t >= g0 && t <= g1)) return true;
+  }
+  return false;
+}
+
+/* ================= walk grid & A* ================= */
+const CELL = 1.5, GX0 = -230, GZ0 = -188, GW = 362, GH = 252;
+const grid = new Uint8Array(GW * GH);
+const OBST = PLACES.filter(p => p.poly);
+// Every building is walk-through: walls block, interiors are walkable, and openings sit at each entrance
+// (the listed doors, projected onto the wall, plus the middle of every exterior wall long enough to have one).
+function nearestOnPoly(px, py, poly){
+  let best = null, bd = 1e9;
+  for (let i = 0; i < poly.length; i++){
+    const [ax, ay] = poly[i], [bx, by] = poly[(i + 1) % poly.length], dx = bx - ax, dy = by - ay;
+    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy || 1)));
+    const qx = ax + t * dx, qy = ay + t * dy, d = Math.hypot(qx - px, qy - py); if (d < bd){ bd = d; best = [qx, qy]; }
+  }
+  return best;
+}
+for (const b of OBST){
+  const ds = (b.doors ? b.doors.map(d => d.at) : [b.door]).map(d => nearestOnPoly(d[0], d[1], b.poly));
+  if (!b.onlyDoors) b.poly.forEach((a, i) => { const c = b.poly[(i + 1) % b.poly.length]; if (Math.hypot(c[0] - a[0], c[1] - a[1]) >= 30) ds.push([(a[0] + c[0]) / 2, (a[1] + c[1]) / 2]); });
+  b.openings = ds;
+}
+const indoor = new Uint8Array(GW * GH), indoorCost = new Float32Array(GW * GH).fill(1); const INDOOR_CELLS = [];
+for (let j = 0; j < GH; j++) for (let i = 0; i < GW; i++){
+  const x = GX0 + (i + .5) * CELL, z = GZ0 + (j + .5) * CELL;
+  const px = x / S + 640, py = z / S + 500, k = j * GW + i;
+  let ok = inArea(px, py) && !onFence(px, py), wall = false, inside = false, pref = false;
+  for (const b of OBST){
+    const d = polyD(px, py, b.poly), inP = pip(px, py, b.poly);
+    if (d < 2.6){ if (b.openings.some(o => Math.hypot(o[0] - px, o[1] - py) < 6.5)) inside = inside || inP; else wall = true; }
+    else if (inP){ inside = true; if (b.preferThrough) pref = true; }
+  }
+  if (wall) ok = false;
+  if (inside && !wall){ ok = true; indoor[k] = 1; indoorCost[k] = pref ? .7 : 1.25; INDOOR_CELLS.push(k); }
+  grid[k] = ok ? 1 : 0;
+}
+const THRU_CELLS = INDOOR_CELLS; // toggled by 「不穿越，改走外面」
+const ci = x => Math.floor((x - GX0) / CELL), cj = z => Math.floor((z - GZ0) / CELL);
+function walkable(x, z){ const i = ci(x), j = cj(z); return i >= 0 && j >= 0 && i < GW && j < GH && grid[j * GW + i] === 1; }
+function nearestCell(x, z){
+  const i0 = ci(x), j0 = cj(z);
+  for (let r = 0; r < 40; r++) for (let dj = -r; dj <= r; dj++) for (let di = -r; di <= r; di++){
+    if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue;
+    const i = i0 + di, j = j0 + dj; if (i < 0 || j < 0 || i >= GW || j >= GH) continue;
+    if (grid[j * GW + i]) return j * GW + i;
+  }
+  return -1;
+}
+const cellPos = k => new THREE.Vector3(GX0 + (k % GW + .5) * CELL, 0, GZ0 + (Math.floor(k / GW) + .5) * CELL);
+function astar(s, t){
+  const N = GW * GH, g = new Float32Array(N).fill(Infinity), came = new Int32Array(N).fill(-1), closed = new Uint8Array(N);
+  const hx = k => { const dx = Math.abs(k % GW - t % GW), dy = Math.abs(Math.floor(k / GW) - Math.floor(t / GW)); return Math.max(dx, dy) + .414 * Math.min(dx, dy); };
+  const heap = []; const push = (f, k) => { heap.push([f, k]); let i = heap.length - 1; while (i > 0){ const p = (i - 1) >> 1; if (heap[p][0] <= heap[i][0]) break; [heap[p], heap[i]] = [heap[i], heap[p]]; i = p; } };
+  const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length){ heap[0] = last; let i = 0; for (;;){ const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
+  g[s] = 0; push(hx(s), s);
+  const D = [[1,0,1],[-1,0,1],[0,1,1],[0,-1,1],[1,1,1.414],[1,-1,1.414],[-1,1,1.414],[-1,-1,1.414]];
+  while (heap.length){
+    const [, k] = pop(); if (closed[k]) continue; closed[k] = 1; if (k === t) break;
+    const x = k % GW, y = Math.floor(k / GW);
+    for (const [dx, dy, c] of D){
+      const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= GW || ny >= GH) continue;
+      const nk = ny * GW + nx; if (!grid[nk] || closed[nk]) continue;
+      if (dx && dy && (!grid[y * GW + nx] || !grid[ny * GW + x])) continue;
+      const ng = g[k] + c * indoorCost[nk]; if (ng < g[nk]){ g[nk] = ng; came[nk] = k; push(ng + hx(nk), nk); }
+    }
+  }
+  if (!closed[t]) return null;
+  const out = []; for (let k = t; k !== -1; k = came[k]) out.push(k); return out.reverse();
+}
+function los(a, b){ const d = a.distanceTo(b), n = Math.ceil(d / (CELL * .4)); for (let i = 1; i < n; i++){ const t = i / n; if (!walkable(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t)) return false; } return true; }
+function findPath(from, to){
+  const s = nearestCell(from.x, from.z), t = nearestCell(to.x, to.z); if (s < 0 || t < 0) return null;
+  const cells = astar(s, t); if (!cells) return null;
+  const raw = [from.clone().setY(0), ...cells.map(cellPos)];
+  const out = [raw[0]]; let i = 0;
+  while (i < raw.length - 1){ let j = raw.length - 1; while (j > i + 1 && !los(raw[i], raw[j])) j--; out.push(raw[j]); i = j; }
+  return out;
+}
+const pathLen = pts => pts.reduce((s, p, i) => i ? s + p.distanceTo(pts[i - 1]) : 0, 0);
+
+/* ================= renderer & scene ================= */
+const canvas = $('#scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+const COARSE = matchMedia('(pointer:coarse)').matches;
+renderer.setPixelRatio(Math.min(devicePixelRatio, COARSE ? 1.5 : 2));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, 1, 3, 3000); // near=3 keeps depth precision for ground layers
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = .09; controls.screenSpacePanning = false;
+controls.maxPolarAngle = 1.38; controls.minDistance = 6; controls.maxDistance = 1300;
+// portrait screens: look from the 錦平街 side so the campus's long axis runs up the screen
+const portrait = () => innerWidth / innerHeight < .9;
+function overviewPos(t){
+  if (portrait()){ const d = Math.min(1200, 470 / Math.max(.4, innerWidth / innerHeight)); return new THREE.Vector3(t.x + d * .78, d * .6, t.z + d * .14); }
+  return new THREE.Vector3(t.x + 55, 215, t.z + 298);
+}
+const planPos = (t, h) => portrait() ? new THREE.Vector3(t.x + .01, h * 1.8, t.z) : new THREE.Vector3(t.x, h, t.z + .01);
+controls.target.set(30, 0, 12); camera.position.copy(overviewPos(controls.target));
+controls.touches.ONE = THREE.TOUCH.PAN; controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
+
+const hemi = new THREE.HemisphereLight(0xffffff, 0x8f9486, 1.3); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 2.4);
+sun.position.set(150, 260, 120); sun.castShadow = true; sun.shadow.mapSize.set(COARSE ? 1024 : 2048, COARSE ? 1024 : 2048);
+Object.assign(sun.shadow.camera, { left: -300, right: 300, top: 250, bottom: -250, near: 10, far: 800 });
+sun.shadow.bias = -.0004; sun.shadow.normalBias = .6; scene.add(sun); scene.add(sun.target);
+
+/* --- window textures --- */
+function winTex(lit){
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  g.fillStyle = lit ? '#000' : '#fff'; g.fillRect(0, 0, 256, 256);
+  const r = mulberry(11);
+  for (let f = 0; f < 8; f++) for (let b = 0; b < 8; b++){
+    const x = b * 32, y = f * 32, on = r() < .5;
+    if (lit){ if (on){ g.fillStyle = '#ffd59b'; g.fillRect(x + 6, y + 9, 20, 15); } }
+    else { g.fillStyle = '#7f8c93'; g.fillRect(x + 6, y + 9, 20, 15); g.fillStyle = 'rgba(0,0,0,.10)'; g.fillRect(x, y + 29, 32, 3); }
+  }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(1 / 24, 1 / 28.8); t.offset.set(0, -1 / 28.8); if (!lit) t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4; return t;
+}
+const TEX = winTex(false), LIT = winTex(true);
+// pencil-sketch wall texture: paper, loose hatching, wobbly window outlines (chalk variant for dark)
+function sketchWallTex(chalk){
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); const r = mulberry(chalk ? 43 : 19);
+  const ink = a => chalk ? `rgba(236,233,220,${a})` : `rgba(44,42,40,${a})`;
+  g.fillStyle = chalk ? '#38443F' : '#FBFAF5'; g.fillRect(0, 0, 256, 256); g.lineCap = 'round';
+  for (let n = 0; n < 160; n++){ const x = r() * 256, y = r() * 256, l = 8 + r() * 24; g.strokeStyle = ink(.07 + r() * .07); g.lineWidth = .8; g.beginPath(); g.moveTo(x, y); g.lineTo(x + l * .7, y - l * .7); g.stroke(); }
+  for (let f = 0; f < 8; f++) for (let b = 0; b < 8; b++){
+    const x = b * 32 + 6, y = f * 32 + 9, w = 20, h = 15, j = () => (r() - .5) * 1.6;
+    g.strokeStyle = ink(.62); g.lineWidth = 1.1;
+    for (let pass = 0; pass < 2; pass++){ g.beginPath(); g.moveTo(x + j() - 1, y + j()); g.lineTo(x + w + j() + 1, y + j()); g.lineTo(x + w + j(), y + h + j() + 1); g.lineTo(x + j(), y + h + j()); g.closePath(); g.stroke(); g.strokeStyle = ink(.25); }
+    g.strokeStyle = ink(.16); for (let k = 3; k < w; k += 4){ g.beginPath(); g.moveTo(x + k, y + h - 1); g.lineTo(x + k + 3, y + 1); g.stroke(); }
+    g.strokeStyle = ink(.12); g.beginPath(); g.moveTo(b * 32, y + 21); g.lineTo(b * 32 + 32, y + 21 + (r() - .5)); g.stroke();
+  }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1 / 24, 1 / 28.8); t.offset.set(0, -1 / 28.8); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+const SK_TEX = { paper: sketchWallTex(false), chalk: sketchWallTex(true) };
+
+/* --- buildings --- */
+const pickables = [];
+function shapeOf(poly){ const s = new THREE.Shape(); poly.forEach(([px, py], i) => { const x = (px - 640) * S, z = (py - 500) * S; i ? s.lineTo(x, -z) : s.moveTo(x, -z); }); s.closePath(); return s; }
+for (const p of PLACES){
+  const c = p.poly ? centroid(p.poly) : p.at; p.center = W(c[0], c[1]); p.doorW = W(p.door[0], p.door[1]);
+  p.doorsW = (p.doors || [{ at: p.door, label: '入口' }]).map((d, i) => ({ w: W(d.at[0], d.at[1]), label: d.label, labelEn: (p.enDoors && p.enDoors[i]) || 'Entrance' }));
+  if (!p.poly){ p.h = 0; continue; }
+  const base = p.roof === 'barrel' ? 9 : p.floors * FLOOR_H + 1.2; p.h = base;
+  const geo = new THREE.ExtrudeGeometry(shapeOf(p.poly), { depth: base, bevelEnabled: false }); geo.rotateX(-Math.PI / 2);
+  const side = new THREE.MeshStandardMaterial({ map: TEX, emissiveMap: LIT, emissive: 0x000000, roughness: .88 });
+  const roof = new THREE.MeshStandardMaterial({ roughness: .95 });
+  const mesh = new THREE.Mesh(geo, [roof, side]); mesh.castShadow = mesh.receiveShadow = true; mesh.userData.id = p.id;
+  scene.add(mesh); pickables.push(mesh); p.mesh = mesh; p.mats = [roof, side];
+  if (p.roof === 'barrel'){
+    const xs = p.poly.map(q => q[0]), ys = p.poly.map(q => q[1]);
+    const w = (Math.max(...xs) - Math.min(...xs)) * S, l = (Math.max(...ys) - Math.min(...ys)) * S;
+    const cg = new THREE.CylinderGeometry(w / 2, w / 2, l, 28, 1, false, Math.PI / 2, Math.PI); cg.rotateX(Math.PI / 2); cg.scale(1, .42, 1);
+    const cm = new THREE.Mesh(cg, roof); cm.position.set(p.center.x, base, p.center.z); cm.castShadow = true; cm.userData.id = p.id;
+    scene.add(cm); pickables.push(cm); p.h = base + w / 2 * .42;
+  }
+  if (p.floors >= 6 && !p.roof){ // rooftop plant room
+    const xs = p.poly.map(q => q[0]), ys = p.poly.map(q => q[1]);
+    const bw = Math.min(12, (Math.max(...xs) - Math.min(...xs)) * S * .35), bd = Math.min(10, (Math.max(...ys) - Math.min(...ys)) * S * .3);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(bw, 3, bd), roof); box.position.set(p.center.x, base + 1.5, p.center.z); box.castShadow = true; box.userData.id = p.id;
+    scene.add(box); pickables.push(box);
+  }
+}
+/* gate & fountain decor */
+const decoMat = new THREE.MeshStandardMaterial({ roughness: .9 });
+[[588, 896], [672, 896]].forEach(([x, y]) => { const m = new THREE.Mesh(new THREE.BoxGeometry(1.4, 4.2, 1.4), decoMat); m.position.copy(W(x, y, 2.1)); m.castShadow = true; scene.add(m); });
+const beam = new THREE.Mesh(new THREE.BoxGeometry(26.6, .8, 1.2), decoMat); beam.position.copy(W(630, 896, 4.4)); scene.add(beam);
+const guard = new THREE.Mesh(new THREE.BoxGeometry(5, 3, 4), decoMat); guard.position.copy(W(566, 885, 1.5)); guard.castShadow = true; scene.add(guard);
+// court furniture: basketball hoops at each court end, volleyball nets across the middle
+const poleMat = new THREE.MeshStandardMaterial({ color: 0x8a9298, roughness: .6 }), boardMat = new THREE.MeshStandardMaterial({ color: 0xf4f4f0, roughness: .5 });
+[[631, 347], [631, 417], [681, 347], [681, 417]].forEach(([x, y], i) => {
+  const p = W(x, y), dir = i % 2 ? -1 : 1;
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(.1, .12, 3.4, 8), poleMat); pole.position.set(p.x, 1.7, p.z - dir * .9); pole.castShadow = true;
+  const board = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.05, .1), boardMat); board.position.set(p.x, 3.3, p.z); board.castShadow = true;
+  scene.add(pole, board);
+});
+[[552, 377], [586, 377]].forEach(([x, y]) => {
+  const p = W(x, y);
+  [-1, 1].forEach(sg => { const post = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 2.45, 6), poleMat); post.position.set(p.x + sg * 4.9, 1.22, p.z); scene.add(post); });
+  const net = new THREE.Mesh(new THREE.BoxGeometry(9.6, .9, .04), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: .55 })); net.position.set(p.x, 1.95, p.z); scene.add(net);
+});
+for (let k = 0; k < 4; k++){
+  const p = W(852 + k * 38 + 15, 557);
+  const net = new THREE.Mesh(new THREE.BoxGeometry(12.6, 1, .05), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: .6 })); net.position.set(p.x, .5, p.z); scene.add(net);
+  [-1, 1].forEach(sg => { const post = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, 1.07, 6), poleMat); post.position.set(p.x + sg * 6.4, .53, p.z); scene.add(post); });
+}
+const fount = new THREE.Mesh(new THREE.CylinderGeometry(4.6, 5.2, .7, 32), decoMat); fount.position.copy(W(630, 700, .35)); scene.add(fount);
+
+/* --- trees --- */
+const TREES = [];
+const row = (x1, y1, x2, y2, n) => { for (let i = 0; i < n; i++){ const t = n === 1 ? .5 : i / (n - 1); TREES.push([x1 + (x2 - x1) * t, y1 + (y2 - y1) * t]); } };
+row(752,95,752,295,8); row(948,95,948,295,8); row(522,334,742,334,8); row(782,440,1062,440,11); row(782,672,800,672,1);
+row(778,455,778,650,6); row(1068,455,1068,650,6); row(528,612,528,850,7); row(737,612,737,850,7); row(392,352,392,512,5);
+row(300,560,300,750,6); row(212,762,212,892,4); row(145,600,290,600,5); row(1182,342,1182,770,13); row(980,795,1170,795,5); row(1005,890,1170,890,6);
+row(1258,430,1258,630,6); row(1384,430,1384,630,6); row(1272,422,1372,422,4); row(530,876,575,876,2); row(690,876,735,876,2); row(500,325,500,345,1); row(590,460,590,500,2);row(670,460,670,500,2);
+row(946,690,946,690,1); row(1090,790,1090,790,1);
+const tr = mulberry(5);
+const crownGeo = new THREE.IcosahedronGeometry(1, 1), trunkGeo = new THREE.CylinderGeometry(.18, .25, 1, 6);
+const crownMat = new THREE.MeshStandardMaterial({ roughness: 1, flatShading: true }), trunkMat = new THREE.MeshStandardMaterial({ color: 0x7a6650, roughness: 1 });
+const crowns = new THREE.InstancedMesh(crownGeo, crownMat, TREES.length), trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, TREES.length);
+crowns.castShadow = true; const M = new THREE.Matrix4(), Q = new THREE.Quaternion();
+TREES.forEach(([x, y], i) => {
+  const p = W(x + (tr() - .5) * 6, y + (tr() - .5) * 6), s = 2.1 + tr() * 1.2, th = 2.2 + tr();
+  M.compose(new THREE.Vector3(p.x, th + s * .8, p.z), Q, new THREE.Vector3(s, s * 1.05, s)); crowns.setMatrixAt(i, M);
+  M.compose(new THREE.Vector3(p.x, th / 2 + .4, p.z), Q, new THREE.Vector3(1, th + .8, 1)); trunks.setMatrixAt(i, M);
+});
+scene.add(crowns, trunks);
+
+/* --- ground --- */
+const GPX = 1530, GPY = 980, K = 2048 / GPX;
+const gCanvas = document.createElement('canvas'); gCanvas.width = 2048; gCanvas.height = Math.round(GPY * K);
+const gTex = new THREE.CanvasTexture(gCanvas); gTex.colorSpace = THREE.SRGBColorSpace; gTex.anisotropy = 8;
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(GPX * S, GPY * S), new THREE.MeshStandardMaterial({ map: gTex, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; ground.position.set((GPX / 2 - 640) * S, 0, (GPY / 2 - 500) * S); ground.receiveShadow = true; scene.add(ground);
+const cityGround = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.MeshStandardMaterial({ roughness: 1 }));
+cityGround.rotation.x = -Math.PI / 2; cityGround.position.y = -1.2; cityGround.material.polygonOffset = true; cityGround.material.polygonOffsetFactor = 4; cityGround.material.polygonOffsetUnits = 4; cityGround.receiveShadow = true; scene.add(cityGround);
+const roadMat = new THREE.MeshStandardMaterial({ roughness: 1, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 });
+// [center px, center py, width px, height px] — roads continue beyond the painted campus tile
+[[640, 945, 6000, 80], [640, 42, 6000, 32], [1223, 500, 46, 6000]].forEach(([x, y, w, h]) => {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w * S, h * S), roadMat); m.rotation.x = -Math.PI / 2;
+  m.position.set((x - 640) * S, -.6, (y - 500) * S); m.receiveShadow = true; scene.add(m);
+});
+
+function paintGround(dark){
+  if (STYLE === 'sketch') return paintGroundSketch(dark);
+  const T = dark
+    ? { city:'#141B1F', road:'#232C31', line:'#3B474D', walk:'#1E272B', campus:'#1A2327', lawn:'#1E2E27', pave:'#283135', tile:'#2F393E', track:'#57382F', field:'#28432D', park:'#21292D', school:'#172024', text:'#7F9196', water:'#2B4A5E' }
+    : { city:'#D8DCD2', road:'#B8BCB4', line:'#F3F3EC', walk:'#E2E3DA', campus:'#E7EBE0', lawn:'#CADAB9', pave:'#EFEDE5', tile:'#E2DFD5', track:'#C9765B', field:'#A1C38A', park:'#DADBD2', school:'#DEDED4', text:'#6F7A72', water:'#9CC7DD' };
+  const g = gCanvas.getContext('2d'); g.setTransform(K, 0, 0, K, 0, 0);
+  const poly = (pts, fill) => { g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fillStyle = fill; g.fill(); };
+  const rect = (x1, y1, x2, y2, fill) => { g.fillStyle = fill; g.fillRect(x1, y1, x2 - x1, y2 - y1); };
+  rect(0, 0, GPX, GPY, T.city);
+  rect(0, 26, GPX, 58, T.road); rect(0, 905, GPX, 990, T.road); rect(1200, 0, 1246, GPY, T.road);
+  rect(0, 905, GPX, 916, T.walk); rect(0, 58, GPX, 64, T.walk);
+  g.strokeStyle = T.line; g.lineWidth = 1.5; g.setLineDash([14, 12]);
+  g.beginPath(); g.moveTo(0, 42); g.lineTo(GPX, 42); g.moveTo(0, 950); g.lineTo(GPX, 950); g.moveTo(1223, 0); g.lineTo(1223, 905); g.stroke(); g.setLineDash([]);
+  poly(SCHOOL, T.school);
+  poly(CAMPUS, T.campus);
+  // lawns
+  [[110,600,300,770],[300,760,320,895],[372,340,500,530],[500,600,525,860],[740,600,750,870],[745,90,775,300],[912,90,960,300],[1166,340,1198,780],[960,780,1100,800]].forEach(r => rect(...r, T.lawn));
+  // paths
+  [[585,560,680,905],[500,425,1095,450],[790,285,900,345],[1162,330,1200,905],[745,668,1100,686],[245,700,300,905],[495,330,520,600],[500,590,520,760],[740,330,760,460],[920,770,1100,800]].forEach(r => rect(...r, T.pave));
+  // plaza tiles + fountain + water
+  rect(520, 600, 745, 865, T.tile); g.strokeStyle = T.pave; g.lineWidth = 1;
+  for (let x = 520; x <= 745; x += 15){ g.beginPath(); g.moveTo(x, 600); g.lineTo(x, 865); g.stroke(); }
+  for (let y = 600; y <= 865; y += 15){ g.beginPath(); g.moveTo(520, y); g.lineTo(745, y); g.stroke(); }
+  g.fillStyle = T.water; g.beginPath(); g.arc(630, 700, 17, 0, Math.PI * 2); g.fill(); rect(625, 716, 635, 830, T.water);
+  // courts behind 昌明樓: 2 full basketball (east, toward 中商) + 2 volleyball (west, toward 學活)
+  const court = (x1, y1, x2, y2, fill, kind) => {
+    rect(x1, y1, x2, y2, fill); g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.1; g.strokeRect(x1 + 2, y1 + 2, x2 - x1 - 4, y2 - y1 - 4);
+    const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2, h = y2 - y1;
+    if (kind !== 'bv' && kind !== 'vv'){ g.beginPath(); g.moveTo(cx, y1 + 2); g.lineTo(cx, y2 - 2); g.stroke(); }
+    if (kind === 'bv'){ // basketball, long axis north–south: centre line across, 3-point arcs at top and bottom
+      const w = x2 - x1; g.beginPath(); g.moveTo(x1 + 2, cy); g.lineTo(x2 - 2, cy); g.stroke();
+      g.beginPath(); g.arc(cx, cy, w * .15, 0, Math.PI * 2); g.stroke();
+      g.beginPath(); g.arc(cx, y1 + 2, w * .42, 0, Math.PI); g.stroke(); g.beginPath(); g.arc(cx, y2 - 2, w * .42, Math.PI, Math.PI * 2); g.stroke(); return; }
+    if (kind === 'b'){ g.beginPath(); g.arc(cx, cy, h * .15, 0, Math.PI * 2); g.stroke();
+      g.beginPath(); g.arc(x1 + 2, cy, h * .42, -Math.PI / 2, Math.PI / 2); g.stroke(); g.beginPath(); g.arc(x2 - 2, cy, h * .42, Math.PI / 2, Math.PI * 1.5); g.stroke(); }
+    else if (kind === 'vv'){ g.beginPath(); g.moveTo(x1 + 2, cy); g.lineTo(x2 - 2, cy); g.moveTo(x1 + 2, cy - h * .17); g.lineTo(x2 - 2, cy - h * .17); g.moveTo(x1 + 2, cy + h * .17); g.lineTo(x2 - 2, cy + h * .17); g.stroke(); }
+    else { const w = x2 - x1; g.beginPath(); g.moveTo(cx - w * .17, y1 + 2); g.lineTo(cx - w * .17, y2 - 2); g.moveTo(cx + w * .17, y1 + 2); g.lineTo(cx + w * .17, y2 - 2); g.stroke(); }
+  };
+  rect(522, 340, 744, 424, T.pave);
+  court(610, 344, 652, 420, dark ? '#2C4A66' : '#5C8DBE', 'bv'); court(660, 344, 702, 420, dark ? '#2C4A66' : '#5C8DBE', 'bv');
+  court(540, 352, 564, 402, dark ? '#5A4636' : '#C98F62', 'vv'); court(574, 352, 598, 402, dark ? '#5A4636' : '#C98F62', 'vv');
+  // track
+  const stadium = (x1, y1, x2, y2) => { const r = (y2 - y1) / 2; g.beginPath(); g.moveTo(x1 + r, y1); g.lineTo(x2 - r, y1); g.arc(x2 - r, y1 + r, r, -Math.PI / 2, Math.PI / 2); g.lineTo(x1 + r, y2); g.arc(x1 + r, y1 + r, r, Math.PI / 2, Math.PI * 1.5); g.closePath(); };
+  rect(782, 452, 1066, 662, T.lawn);
+  stadium(790, 462, 1058, 652); g.fillStyle = T.track; g.fill();
+  stadium(812, 484, 1036, 630); g.fillStyle = dark ? '#2B4A36' : '#5E8F6B'; g.fill();
+  // tennis courts inside the track: 4 courts, long side north–south
+  for (let k = 0; k < 4; k++){
+    const x1 = 852 + k * 38, y1 = 525, x2 = x1 + 30, y2 = 589, cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+    rect(x1, y1, x2, y2, dark ? '#2C4E73' : '#4F7FB8');
+    g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = .9; g.strokeRect(x1 + 1, y1 + 1, x2 - x1 - 2, y2 - y1 - 2);
+    g.beginPath(); g.moveTo(x1 + 4.5, y1 + 1); g.lineTo(x1 + 4.5, y2 - 1); g.moveTo(x2 - 4.5, y1 + 1); g.lineTo(x2 - 4.5, y2 - 1);
+    g.moveTo(x1 + 4.5, cy - 17); g.lineTo(x2 - 4.5, cy - 17); g.moveTo(x1 + 4.5, cy + 17); g.lineTo(x2 - 4.5, cy + 17);
+    g.moveTo(cx, cy - 17); g.lineTo(cx, cy + 17); g.stroke();
+  }
+  g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = .8; for (let k = 1; k < 4; k++){ stadium(790 + k * 5.5, 462 + k * 5.5, 1058 - k * 5.5, 652 - k * 5.5); g.stroke(); }
+  // parking
+  const park = (x1, y1, x2, y2, vert) => { rect(x1, y1, x2, y2, T.park); g.strokeStyle = T.line; g.lineWidth = 1; g.beginPath(); if (vert) for (let y = y1 + 6; y < y2; y += 8){ g.moveTo(x1 + 3, y); g.lineTo(x2 - 3, y); } else for (let x = x1 + 6; x < x2; x += 8){ g.moveTo(x, y1 + 3); g.lineTo(x, y2 - 3); } g.stroke(); };
+  park(170, 605, 280, 680); park(722, 100, 746, 290, true); park(955, 100, 996, 290, true); park(1000, 812, 1165, 885);
+  rect(1246, 410, 1396, 720, T.campus); park(1255, 650, 1390, 705);
+  rect(250, 760, 296, 905, T.road);
+  // street names
+  g.fillStyle = T.text; g.font = '600 16px "Noto Sans TC","PingFang TC",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  [L('中華路', 'Zhonghua Rd.'), L('三民路三段', 'Sanmin Rd. Sec. 3')].forEach((t, i) => { const y = i ? 965 : 42; [380, 1380].forEach(x => { g.fillStyle = T.city === '#141B1F' ? '#55656B' : '#F5F5EF'; g.fillText(t, x, y); }); });
+  g.save(); g.translate(1223, 300); g.rotate(Math.PI / 2); g.fillText(L('錦平街', 'Jinping St.'), 0, 0); g.restore();
+  g.fillStyle = T.text; g.font = '500 20px "Noto Sans TC","PingFang TC",sans-serif'; g.fillText(L('太平國小（校外）', 'Taiping Elementary (off campus)'), 360, 200);
+  // campus fence
+  g.strokeStyle = dark ? '#3A4950' : '#9CA59A'; g.lineWidth = 1.2; g.beginPath(); CAMPUS.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.stroke();
+  gTex.needsUpdate = true;
+}
+
+function paintGroundSketch(chalk){
+  const g = gCanvas.getContext('2d'); g.setTransform(K, 0, 0, K, 0, 0); const rr = mulberry(31);
+  const paper = chalk ? '#26302D' : '#F4F1E8', ink = a => chalk ? `rgba(236,233,220,${a})` : `rgba(44,42,40,${a})`;
+  const col = (r, gg, b, a) => chalk ? `rgba(${Math.min(255, r + 60)},${Math.min(255, gg + 60)},${Math.min(255, b + 60)},${a})` : `rgba(${r},${gg},${b},${a})`;
+  g.fillStyle = paper; g.fillRect(0, 0, GPX, GPY); g.lineCap = 'round'; g.lineJoin = 'round';
+  for (let n = 0; n < 2600; n++){ g.fillStyle = ink(.035); g.fillRect(rr() * GPX, rr() * GPY, 1, 1); }
+  const line = (x1, y1, x2, y2, a = .7, w = 1.3) => { for (let pass = 0; pass < 2; pass++){ const j = () => (rr() - .5) * 1.8; g.strokeStyle = ink(a * (pass ? .5 : 1)); g.lineWidth = w; g.beginPath(); g.moveTo(x1 + j(), y1 + j()); g.quadraticCurveTo((x1 + x2) / 2 + j() * 1.4, (y1 + y2) / 2 + j() * 1.4, x2 + j(), y2 + j()); g.stroke(); } };
+  const polyS = (pts, a, w) => pts.forEach((p, i) => { const q = pts[(i + 1) % pts.length]; line(p[0], p[1], q[0], q[1], a, w); });
+  const rectS = (x1, y1, x2, y2, a = .55, w = 1.1) => polyS([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], a, w);
+  const hatch = (pathFn, color, step = 6, w = 1) => { g.save(); g.beginPath(); pathFn(); g.clip(); g.strokeStyle = color; g.lineWidth = w;
+    for (let t = -GPY; t < GPX + GPY; t += step){ g.beginPath(); g.moveTo(t + (rr() - .5) * 2, GPY); g.lineTo(t + GPY + (rr() - .5) * 2, 0); g.stroke(); } g.restore(); };
+  const rp = (x1, y1, x2, y2) => () => g.rect(x1, y1, x2 - x1, y2 - y1);
+  const pp = pts => () => pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y));
+  const stadium = (x1, y1, x2, y2) => () => { const r = (y2 - y1) / 2; g.moveTo(x1 + r, y1); g.lineTo(x2 - r, y1); g.arc(x2 - r, y1 + r, r, -Math.PI / 2, Math.PI / 2); g.lineTo(x1 + r, y2); g.arc(x1 + r, y1 + r, r, Math.PI / 2, Math.PI * 1.5); };
+  // roads: pencil kerbs + dashed centre
+  [[26, 58], [905, 990]].forEach(([a, b]) => { line(0, a, GPX, a, .55); line(0, b, GPX, b, .55); hatch(rp(0, a, GPX, b), ink(.05), 9); });
+  line(1200, 0, 1200, GPY, .55); line(1246, 0, 1246, GPY, .55); hatch(rp(1200, 0, 1246, GPY), ink(.05), 9);
+  g.setLineDash([10, 12]); g.strokeStyle = ink(.3); g.lineWidth = 1; g.beginPath(); g.moveTo(0, 42); g.lineTo(GPX, 42); g.moveTo(0, 950); g.lineTo(GPX, 950); g.moveTo(1223, 0); g.lineTo(1223, 905); g.stroke(); g.setLineDash([]);
+  // school next door, campus
+  polyS(SCHOOL, .25, 1); hatch(pp(SCHOOL), ink(.04), 11);
+  // lawns: green colored pencil
+  [[110,600,300,770],[300,760,320,895],[372,340,500,530],[500,600,525,860],[740,600,750,870],[745,90,775,300],[912,90,960,300],[1166,340,1198,780],[960,780,1100,800],[782,452,1066,662]].forEach(r => hatch(rp(...r), col(96, 150, 84, .28), 5));
+  // paths outlines
+  [[585,560,680,905],[500,425,1095,450],[790,285,900,345],[1162,330,1200,905],[745,668,1100,686],[245,700,300,905]].forEach(r => rectS(...r, .18, .9));
+  // plaza grid + fountain + channel
+  rectS(520, 600, 745, 865, .5); g.strokeStyle = ink(.1); g.lineWidth = .8;
+  for (let x = 535; x < 745; x += 15){ g.beginPath(); g.moveTo(x, 602); g.lineTo(x + (rr() - .5) * 2, 863); g.stroke(); }
+  for (let y = 615; y < 865; y += 15){ g.beginPath(); g.moveTo(522, y); g.lineTo(743, y + (rr() - .5) * 2); g.stroke(); }
+  for (let k = 0; k < 2; k++){ g.strokeStyle = ink(.6 - k * .25); g.lineWidth = 1.2; g.beginPath(); g.arc(630 + (rr() - .5) * 2, 700 + (rr() - .5) * 2, 17, 0, Math.PI * 2); g.stroke(); }
+  hatch(() => g.arc(630, 700, 16, 0, Math.PI * 2), col(80, 140, 190, .35), 4); hatch(rp(625, 716, 635, 830), col(80, 140, 190, .35), 4); rectS(625, 716, 635, 830, .45, .9);
+  // track: red pencil ring, tennis courts inside
+  hatch(stadium(790, 462, 1058, 652), col(196, 96, 72, .38), 4);
+  g.save(); g.beginPath(); stadium(812, 484, 1036, 630)(); g.fillStyle = paper; g.fill(); g.restore();
+  hatch(stadium(812, 484, 1036, 630), col(96, 150, 84, .25), 6);
+  for (let k = 0; k < 2; k++){ g.strokeStyle = ink(.6 - k * .25); g.lineWidth = 1.2; g.beginPath(); stadium(790 + rr(), 462 + rr(), 1058 - rr(), 652 - rr())(); g.closePath(); g.stroke(); g.beginPath(); stadium(812 + rr(), 484 + rr(), 1036 - rr(), 630 - rr())(); g.closePath(); g.stroke(); }
+  const blue = col(70, 120, 190, .32), orange = col(200, 130, 80, .32);
+  for (let k = 0; k < 4; k++){ const x1 = 852 + k * 38, x2 = x1 + 30; hatch(rp(x1, 525, x2, 589), blue, 4); rectS(x1, 525, x2, 589, .6); line(x1, 557, x2, 557, .55, 1); line(x1 + 4.5, 525, x1 + 4.5, 589, .3, .8); line(x2 - 4.5, 525, x2 - 4.5, 589, .3, .8); }
+  // basketball + volleyball courts
+  [[610, 344, 652, 420], [660, 344, 702, 420]].forEach(([x1, y1, x2, y2]) => { hatch(rp(x1, y1, x2, y2), blue, 4); rectS(x1, y1, x2, y2, .6); line(x1, (y1 + y2) / 2, x2, (y1 + y2) / 2, .5, 1); g.strokeStyle = ink(.5); g.beginPath(); g.arc((x1 + x2) / 2, (y1 + y2) / 2, 6, 0, Math.PI * 2); g.stroke(); });
+  [[540, 352, 564, 402], [574, 352, 598, 402]].forEach(([x1, y1, x2, y2]) => { hatch(rp(x1, y1, x2, y2), orange, 4); rectS(x1, y1, x2, y2, .6); line(x1, (y1 + y2) / 2, x2, (y1 + y2) / 2, .5, 1); });
+  // parking
+  [[170, 605, 280, 680], [722, 100, 746, 290], [955, 100, 996, 290], [1000, 812, 1165, 885], [1255, 650, 1390, 705]].forEach(([x1, y1, x2, y2]) => { rectS(x1, y1, x2, y2, .35, 1); g.strokeStyle = ink(.18); g.lineWidth = .8; g.beginPath(); if (y2 - y1 > x2 - x1) for (let y = y1 + 8; y < y2; y += 8){ g.moveTo(x1 + 2, y); g.lineTo(x2 - 2, y); } else for (let x = x1 + 8; x < x2; x += 8){ g.moveTo(x, y1 + 2); g.lineTo(x, y2 - 2); } g.stroke(); });
+  // campus fence + 中技 block
+  polyS(CAMPUS, .8, 1.7); rectS(1246, 410, 1396, 720, .45, 1.2);
+  // handwritten street names
+  g.fillStyle = ink(.72); g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '700 19px "LXGW WenKai TC","Noto Sans TC",cursive';
+  [L('中華路', 'Zhonghua Rd.'), L('三民路三段', 'Sanmin Rd. Sec. 3')].forEach((t, i) => { const y = i ? 965 : 42; [380, 1380].forEach(x => g.fillText(t, x, y)); });
+  g.save(); g.translate(1223, 300); g.rotate(Math.PI / 2); g.fillText(L('錦平街', 'Jinping St.'), 0, 0); g.restore();
+  g.font = '500 21px "LXGW WenKai TC","Noto Sans TC",cursive'; g.fillStyle = ink(.45); g.fillText(L('太平國小（校外）', 'Taiping Elementary (off campus)'), 360, 200);
+  gTex.needsUpdate = true;
+}
+
+/* --- city context blocks --- */
+const cityRnd = mulberry(23), cityMat = new THREE.MeshStandardMaterial({ roughness: .95 });
+const blocks = [];
+const reserved = (px, py) => inArea(px, py) || pip(px, py, SCHOOL) || (py > 18 && py < 70) || (py > 895 && py < 995) || (px > 1190 && px < 1256) || (px > 1236 && px < 1405 && py > 400 && py < 915);
+for (let py = -700; py < 1700; py += 64) for (let px = -900; px < 2200; px += 64){
+  const w = 30 + cityRnd() * 26, d = 30 + cityRnd() * 26, h = 6 + Math.pow(cityRnd(), 2.2) * 42, cx = px + (cityRnd() - .5) * 10, cy = py + (cityRnd() - .5) * 10;
+  if (Math.hypot(cx - 700, cy - 500) > 1300) continue;
+  if ([[0, 0], [-w, -d], [w, d], [-w, d], [w, -d]].some(([a, b]) => reserved(cx + a / 2 + Math.sign(a) * 6, cy + b / 2 + Math.sign(b) * 6))) continue;
+  blocks.push([cx, cy, w, d, h]);
+}
+const city = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), cityMat, blocks.length);
+blocks.forEach(([x, y, w, d, h], i) => { const p = W(x, y); M.compose(new THREE.Vector3(p.x, h / 2, p.z), Q, new THREE.Vector3(w * S, h, d * S)); city.setMatrixAt(i, M); });
+city.castShadow = city.receiveShadow = true; scene.add(city);
+const school = new THREE.Mesh(new THREE.ExtrudeGeometry(shapeOf([[140,90],[460,90],[460,140],[140,140]]), { depth: 10, bevelEnabled: false }).rotateX(-Math.PI / 2), cityMat);
+school.castShadow = true; scene.add(school);
+
+/* --- pencil-sketch overlay: wobbly double edges, tree outlines, line-drawn city --- */
+const sketchGroup = new THREE.Group(); sketchGroup.visible = false; scene.add(sketchGroup);
+const inkMat = new THREE.LineBasicMaterial({ color: 0x2c2a28, transparent: true, opacity: .9 });
+const inkSoft = new THREE.LineBasicMaterial({ color: 0x2c2a28, transparent: true, opacity: .32 });
+let skSeed = 7;
+function sketchEdges(mesh, mat, threshold = 28, passes = 2){
+  mesh.updateMatrixWorld(true);
+  const eg = new THREE.EdgesGeometry(mesh.geometry, threshold), p = eg.attributes.position, out = [], rr = mulberry(skSeed++);
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), d = new THREE.Vector3();
+  for (let pass = 0; pass < passes; pass++) for (let i = 0; i < p.count; i += 2){
+    a.fromBufferAttribute(p, i).applyMatrix4(mesh.matrixWorld); b.fromBufferAttribute(p, i + 1).applyMatrix4(mesh.matrixWorld);
+    d.subVectors(b, a); const len = d.length(); if (len < .05) continue; d.normalize();
+    const o1 = (rr() * .8 + .15) * Math.min(1.4, len * .09), o2 = (rr() * .8 + .15) * Math.min(1.4, len * .09), j = () => (rr() - .5) * (pass ? .45 : .2);
+    out.push(a.x - d.x * o1 + j(), a.y - d.y * o1 + j() * .4, a.z - d.z * o1 + j(), b.x + d.x * o2 + j(), b.y + d.y * o2 + j() * .4, b.z + d.z * o2 + j());
+  }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
+  sketchGroup.add(new THREE.LineSegments(geo, mat)); eg.dispose();
+}
+pickables.forEach(m => sketchEdges(m, inkMat));
+scene.children.filter(o => o.isMesh && o.material === decoMat).forEach(m => sketchEdges(m, inkMat, 28, 1));
+sketchEdges(school, inkSoft, 28, 1);
+{ // line-drawn surrounding blocks
+  const out = [], rr = mulberry(91);
+  blocks.forEach(([x, y, w, d, h]) => {
+    const c = W(x, y), hw = w * S / 2, hd = d * S / 2, j = () => (rr() - .5) * .6;
+    const P = [[-hw, 0, -hd], [hw, 0, -hd], [hw, 0, hd], [-hw, 0, hd]].map(([a, , b]) => [c.x + a, c.z + b]);
+    for (let k = 0; k < 4; k++){ const [x1, z1] = P[k], [x2, z2] = P[(k + 1) % 4]; out.push(x1 + j(), h, z1 + j(), x2 + j(), h, z2 + j(), x1, 0, z1, x1 + j(), h, z1); }
+  });
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
+  const cityLines = new THREE.LineSegments(geo, inkSoft); cityLines.userData.city = true; sketchGroup.add(cityLines);
+}
+// tree outlines: inverted hull around each crown
+const hullMat = new THREE.MeshBasicMaterial({ color: 0x2c2a28, side: THREE.BackSide });
+const treeHull = new THREE.InstancedMesh(crownGeo, hullMat, TREES.length);
+{ const m = new THREE.Matrix4(), p = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3();
+  for (let i = 0; i < TREES.length; i++){ crowns.getMatrixAt(i, m); m.decompose(p, q, sc); sc.multiplyScalar(1.1); m.compose(p, q, sc); treeHull.setMatrixAt(i, m); } }
+treeHull.visible = false; scene.add(treeHull);
+
+/* --- street lamps: posts by day; at night they light up as the walker passes, then fade --- */
+const LAMP_LINES = [
+  [[530,612],[530,856]], [[735,612],[735,856]], [[505,445],[1090,445]], [[760,677],[1095,677]],
+  [[1180,345],[1180,895]], [[298,560],[298,895]], [[505,345],[505,595]], [[796,692],[796,880]],
+  [[930,786],[1095,786]], [[110,913],[1190,913]], [[700,64],[1020,64]], [[1252,425],[1252,640]],
+  [[790,305],[790,340]], [[896,305],[896,340]], [[600,560],[600,600]], [[665,560],[665,600]],
+];
+const LAMPS = [];
+for (const [[x1, y1], [x2, y2]] of LAMP_LINES){
+  const len = Math.hypot(x2 - x1, y2 - y1), n = Math.max(1, Math.round(len / 44));
+  for (let i = 0; i <= n; i++){
+    const px = x1 + (x2 - x1) * i / n, py = y1 + (y2 - y1) * i / n;
+    if (OBST.some(b => pip(px, py, b.poly) || polyD(px, py, b.poly) < 5)) continue;
+    if (LAMPS.some(l => Math.hypot(l.px - px, l.py - py) < 25)) continue;
+    LAMPS.push({ px, py, w: W(px, py), level: 0, last: -1e9 });
+  }
+}
+const lampPoleMat = new THREE.MeshStandardMaterial({ color: 0x5b6266, roughness: .6, metalness: .3 });
+const lampPoles = new THREE.InstancedMesh(new THREE.CylinderGeometry(.09, .13, 4.6, 6), lampPoleMat, LAMPS.length);
+const lampHeadMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const lampHeads = new THREE.InstancedMesh(new THREE.SphereGeometry(.32, 12, 8), lampHeadMat, LAMPS.length);
+const poolTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,214,150,1)'); gr.addColorStop(.35, 'rgba(255,190,110,.55)'); gr.addColorStop(1, 'rgba(255,170,90,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+const poolGeo = new THREE.PlaneGeometry(1, 1); poolGeo.rotateX(-Math.PI / 2);
+const lampPools = new THREE.InstancedMesh(poolGeo, new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }), LAMPS.length);
+lampPools.renderOrder = 4;
+const lampHalos = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 12, 8), new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: .5 }), LAMPS.length);
+{ const m = new THREE.Matrix4(), off = new THREE.Color(0x000000);
+  LAMPS.forEach((l, i) => {
+    m.makeTranslation(l.w.x, 2.3, l.w.z); lampPoles.setMatrixAt(i, m);
+    m.makeTranslation(l.w.x, 4.7, l.w.z); lampHeads.setMatrixAt(i, m);
+    m.compose(new THREE.Vector3(l.w.x, .42, l.w.z), new THREE.Quaternion(), new THREE.Vector3(19, 1, 19)); lampPools.setMatrixAt(i, m);
+    m.compose(new THREE.Vector3(l.w.x, 4.7, l.w.z), new THREE.Quaternion(), new THREE.Vector3(1.4, 1.4, 1.4)); lampHalos.setMatrixAt(i, m);
+    lampHeads.setColorAt(i, new THREE.Color(0x8a8f93)); lampPools.setColorAt(i, off); lampHalos.setColorAt(i, off);
+  });
+}
+lampPoles.castShadow = true; scene.add(lampPoles, lampHeads, lampPools, lampHalos);
+// three real point lights follow the brightest lamps near the walker (kept in the scene so shaders never recompile)
+const lampLights = [0, 1, 2].map(() => { const pl = new THREE.PointLight(0xffc98a, 0, 26, 1.6); scene.add(pl); return pl; });
+const LAMP_ON = new THREE.Color(0xffe2a8), LAMP_OFF = new THREE.Color(0x8a8f93), POOL_ON = new THREE.Color(0xffffff), tmpC = new THREE.Color();
+function updateLamps(dt){
+  const night = dark, now = performance.now();
+  let changed = false;
+  for (let i = 0; i < LAMPS.length; i++){
+    const l = LAMPS[i], d = Math.hypot(l.w.x - charPos.x, l.w.z - charPos.z);
+    if (d < 20) l.last = now;
+    const target = night && now - l.last < 6000 ? 1 : 0;
+    if (Math.abs(l.level - target) < .002 && !(target && l.level < 1)) continue;
+    l.level += (target - l.level) * Math.min(1, dt * (target ? 5 : 1.1));
+    if (Math.abs(l.level - target) < .003) l.level = target;
+    // short flicker while warming up
+    const v = l.level * (target && l.level < .85 ? .55 + .45 * Math.random() : 1);
+    lampHeads.setColorAt(i, tmpC.copy(LAMP_OFF).lerp(LAMP_ON, v)); lampPools.setColorAt(i, tmpC.copy(POOL_ON).multiplyScalar(v * .9)); lampHalos.setColorAt(i, tmpC.copy(POOL_ON).multiplyScalar(v));
+    changed = true;
+  }
+  if (changed){ lampHeads.instanceColor.needsUpdate = lampPools.instanceColor.needsUpdate = lampHalos.instanceColor.needsUpdate = true; }
+  const lit = LAMPS.filter(l => l.level > .05).sort((a, b) => Math.hypot(a.w.x - charPos.x, a.w.z - charPos.z) - Math.hypot(b.w.x - charPos.x, b.w.z - charPos.z));
+  lampLights.forEach((pl, k) => { const l = lit[k]; if (l){ pl.position.set(l.w.x, 4.5, l.w.z); pl.intensity = 55 * l.level; } else pl.intensity = 0; });
+}
+
+/* --- character --- */
+const charRoot = new THREE.Group(); scene.add(charRoot);
+let charParts = null;
+function buildChar(kind){
+  charRoot.clear();
+  const girl = kind === 'girl';
+  const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: .8 });
+  const skin = mat(0xf0c8a0), shirt = mat(girl ? 0xd9576a : 0x2f6fbf), pants = mat(girl ? 0x3b3f58 : 0x2b3440), hair = mat(0x2a1d16), bag = mat(0xe8a23a);
+  const legGeo = new THREE.BoxGeometry(.17, .82, .2); legGeo.translate(0, -.41, 0);
+  const legL = new THREE.Mesh(legGeo, pants), legR = new THREE.Mesh(legGeo, pants);
+  legL.position.set(-.11, .86, 0); legR.position.set(.11, .86, 0);
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(.22, girl ? .3 : .25, .72, 12), shirt); body.position.y = 1.2;
+  const armGeo = new THREE.BoxGeometry(.12, .62, .14); armGeo.translate(0, -.31, 0);
+  const armL = new THREE.Mesh(armGeo, shirt), armR = new THREE.Mesh(armGeo, shirt); armL.position.set(-.3, 1.52, 0); armR.position.set(.3, 1.52, 0);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.18, 16, 12), skin); head.position.y = 1.74;
+  const hr = new THREE.Mesh(new THREE.SphereGeometry(girl ? .21 : .195, 16, 10, 0, Math.PI * 2, 0, girl ? 2.1 : 1.45), hair); hr.position.set(0, 1.76, -.02);
+  const pack = new THREE.Mesh(new THREE.BoxGeometry(.34, .42, .16), bag); pack.position.set(0, 1.25, -.27);
+  charRoot.add(legL, legR, body, armL, armR, head, hr, pack);
+  if (girl){ const tail = new THREE.Mesh(new THREE.SphereGeometry(.1, 10, 8), hair); tail.scale.set(1, 1.8, 1); tail.position.set(0, 1.62, -.22); charRoot.add(tail); }
+  charRoot.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  charParts = { legL, legR, armL, armR };
+}
+const ring = new THREE.Mesh(new THREE.RingGeometry(.75, 1.05, 32), new THREE.MeshBasicMaterial({ color: 0xdc6a2b, transparent: true, opacity: .85, depthWrite: false }));
+const ringFill = new THREE.Mesh(new THREE.CircleGeometry(.75, 32), new THREE.MeshBasicMaterial({ color: 0xdc6a2b, transparent: true, opacity: .25, depthWrite: false, depthTest: false })); ringFill.rotation.x = -Math.PI / 2; ringFill.renderOrder = 11; ringFill.visible = false;
+ring.rotation.x = -Math.PI / 2; ring.position.y = .3; scene.add(ring, ringFill);
+const pin = new THREE.Group();
+const pinMat = new THREE.MeshBasicMaterial({ color: 0xdc6a2b, depthTest: false, transparent: true });
+const cone = new THREE.Mesh(new THREE.ConeGeometry(.55, 1.5, 16), pinMat); cone.rotation.x = Math.PI; cone.position.y = .75;
+const ball = new THREE.Mesh(new THREE.SphereGeometry(.62, 16, 12), pinMat); ball.position.y = 1.7;
+const pinHalo = new THREE.Mesh(new THREE.RingGeometry(.9, 1.25, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: .9 }));
+pinHalo.position.y = 1.7; pin.add(cone, ball, pinHalo); pin.traverse(o => { o.renderOrder = 12; }); scene.add(pin);
+// roof ripples shown while passing through a building
+const ripMat = () => new THREE.MeshBasicMaterial({ color: 0xdc6a2b, transparent: true, opacity: 1, depthTest: false, side: THREE.DoubleSide });
+const ripples = [0, 1, 2].map(() => { const m = new THREE.Mesh(new THREE.RingGeometry(.85, 1, 48), ripMat()); m.rotation.x = -Math.PI / 2; m.renderOrder = 11; m.visible = false; scene.add(m); return m; });
+// which building is the character inside? (indoor passages such as 中商大樓)
+function buildingAt(v){ const px = v.x / S + 640, py = v.z / S + 500; return OBST.find(b => pip(px, py, b.poly)) || null; }
+
+/* --- route ribbon & markers --- */
+const routeMat = new THREE.MeshBasicMaterial({ color: 0xf5b800, transparent: true, opacity: .95, depthWrite: false, depthTest: false, side: THREE.DoubleSide });
+const routeEdgeMat = new THREE.MeshBasicMaterial({ color: 0x5c4300, transparent: true, opacity: .55, depthWrite: false, depthTest: false, side: THREE.DoubleSide });
+let routeEdge = null;
+let routeMesh = null;
+const destMark = new THREE.Mesh(new THREE.TorusGeometry(1.6, .22, 8, 40), routeMat); destMark.rotation.x = -Math.PI / 2; destMark.visible = false; scene.add(destMark);
+function drawRoute(pts){
+  if (routeMesh){ scene.remove(routeMesh); routeMesh.geometry.dispose(); routeMesh = null; }
+  if (routeEdge){ scene.remove(routeEdge); routeEdge.geometry.dispose(); routeEdge = null; }
+  if (!pts){ destMark.visible = false; return; }
+  routeEdge = ribbon(pts, 2.2, routeEdgeMat, 9); scene.add(routeEdge);
+  routeMesh = ribbon(pts, 1.3, routeMat, 10); scene.add(routeMesh);
+  destMark.position.set(pts[pts.length - 1].x, .45, pts[pts.length - 1].z); destMark.visible = true;
+}
+function ribbon(pts, w, mat, order){
+  const pos = [], idx = [];
+  pts.forEach((p, i) => {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+    const d = new THREE.Vector3().subVectors(b, a).setY(0).normalize(); const n = new THREE.Vector3(-d.z, 0, d.x).multiplyScalar(w / 2);
+    pos.push(p.x + n.x, .35, p.z + n.z, p.x - n.x, .35, p.z - n.z);
+    if (i){ const k = i * 2; idx.push(k - 2, k - 1, k, k - 1, k + 1, k); }
+  });
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx);
+  const m = new THREE.Mesh(g, mat); m.renderOrder = order; return m;
+}
+const slabMat = new THREE.MeshBasicMaterial({ color: 0x1c5ba5, transparent: true, opacity: .55, depthWrite: false });
+let slab = null;
+function showSlab(p, f){
+  if (slab){ scene.remove(slab); slab.geometry.dispose(); slab = null; }
+  if (!p || !f) return;
+  const geo = new THREE.ExtrudeGeometry(shapeOf(p.poly), { depth: FLOOR_H * .96, bevelEnabled: false }); geo.rotateX(-Math.PI / 2);
+  geo.translate(-p.center.x, 0, -p.center.z); geo.scale(1.06, 1, 1.06); geo.translate(p.center.x, (f - 1) * FLOOR_H + .15, p.center.z);
+  slab = new THREE.Mesh(geo, slabMat); slab.renderOrder = 3; scene.add(slab);
+}
+
+/* ================= theme ================= */
+let dark = false;
+function isDark(){ const t = document.documentElement.getAttribute('data-theme'); return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; }
+function applyTheme(){
+  dark = isDark();
+  if (STYLE === 'sketch') return applySketchTheme();
+  sun.castShadow = true; lampPoleMat.color.set(0x5b6266); sketchGroup.visible = false; treeHull.visible = false; document.body.classList.remove('sketch', 'chalk');
+  for (const p of PLACES) if (p.mats){ p.mats[1].map = TEX; p.mats[1].emissiveMap = LIT; p.mats[1].needsUpdate = true; }
+  const sky = dark ? 0x0f171b : 0xe4e8e0;
+  scene.background = new THREE.Color(sky); scene.fog = new THREE.Fog(sky, 500, 1300);
+  hemi.intensity = dark ? .45 : 1.3; hemi.color.set(dark ? 0x9fb4d0 : 0xffffff); hemi.groundColor.set(dark ? 0x1a2024 : 0x8f9486);
+  sun.intensity = dark ? .55 : 2.4; sun.color.set(dark ? 0xaec4e8 : 0xfff6ea);
+  cityMat.color.set(dark ? 0x232c31 : 0xcfd3c9); cityGround.material.color.set(dark ? 0x141b1f : 0xd8dcd2); roadMat.color.set(dark ? 0x232c31 : 0xb8bcb4);
+  crownMat.color.set(dark ? 0x2c4733 : 0x82a96c); decoMat.color.set(dark ? 0x3a4448 : 0xf2f1ea);
+  routeMat.color.set(dark ? 0xffc83d : 0xf5b800); routeEdgeMat.color.set(dark ? 0x000000 : 0x5c4300); pinMat.color.set(dark ? 0xf28c4e : 0xdc6a2b); ring.material.color.copy(pinMat.color); slabMat.color.set(dark ? 0x78a9ea : 0x1c5ba5);
+  for (const p of PLACES) if (p.mats){ const base = new THREE.Color(css(GROUPS[p.group].v)); p.base = base; }
+  paintGround(dark); refreshHighlight(); if (typeof miniBase !== 'undefined') miniBase = null;
+}
+function applySketchTheme(){
+  const chalk = dark, paper = chalk ? 0x26302d : 0xf4f1e8, ink = chalk ? 0xeceadc : 0x2c2a28;
+  document.body.classList.add('sketch'); document.body.classList.toggle('chalk', chalk);
+  scene.background = new THREE.Color(paper); scene.fog = new THREE.Fog(paper, 500, 1300);
+  hemi.intensity = 1.5; hemi.color.set(0xffffff); hemi.groundColor.set(chalk ? 0x55605a : 0xd8d2c4);
+  sun.intensity = 1.25; sun.color.set(0xffffff); sun.castShadow = false;
+  cityMat.color.set(paper); cityGround.material.color.set(paper); roadMat.color.set(chalk ? 0x2c3733 : 0xece8dc);
+  crownMat.color.set(chalk ? 0x3c4a43 : 0xe4ebd8); decoMat.color.set(chalk ? 0x3a4642 : 0xfbfaf5);
+  inkMat.color.set(ink); inkSoft.color.set(ink); hullMat.color.set(ink); lampPoleMat.color.set(chalk ? 0x9aa39e : 0x4a4744);
+  sketchGroup.visible = true; treeHull.visible = true;
+  sketchGroup.children.forEach(o => { if (o.userData.city) o.visible = city.visible; });
+  routeMat.color.set(chalk ? 0xffe066 : 0xf7c600); routeEdgeMat.color.set(chalk ? 0x000000 : 0x6b5200); pinMat.color.set(chalk ? 0xff9a5c : 0xdc6a2b); ring.material.color.copy(pinMat.color); slabMat.color.set(chalk ? 0x8fbcf0 : 0x2f6db5);
+  for (const p of PLACES) if (p.mats){ p.base = new THREE.Color(css(GROUPS[p.group].v)); p.mats[1].map = chalk ? SK_TEX.chalk : SK_TEX.paper; p.mats[1].emissiveMap = null; p.mats[1].needsUpdate = true; }
+  paintGround(dark); refreshHighlight(); if (typeof miniBase !== 'undefined') miniBase = null;
+}
+function refreshHighlight(){
+  if (STYLE === 'sketch'){
+    const chalk = dark, paper = new THREE.Color(chalk ? 0x3a4642 : 0xfdfcf7), accent = new THREE.Color(chalk ? 0x8fbcf0 : 0x2f6db5);
+    for (const p of PLACES){
+      if (!p.mats) continue;
+      const sel = state.selected === p.id, hov = hovered === p.id;
+      // walls: the sketch texture carries the paper/chalk tone, so tint white only lightly
+      const side = new THREE.Color(0xffffff).lerp(p.base, chalk ? .18 : .12), roof = paper.clone().lerp(p.base, chalk ? .4 : .55);
+      if (sel){ side.lerp(accent, .3); roof.lerp(accent, .45); } else if (hov){ side.lerp(p.base, .2); }
+      p.mats[1].color.copy(side); p.mats[0].color.copy(roof); p.mats[1].emissive.set(0x000000); p.mats[1].emissiveIntensity = 0;
+    }
+    return;
+  }
+  for (const p of PLACES){
+    if (!p.mats) continue;
+    const sel = state.selected === p.id, hov = hovered === p.id;
+    const c = p.base.clone(); if (dark) c.multiplyScalar(.62);
+    const accent = new THREE.Color(dark ? 0x78a9ea : 0x1c5ba5);
+    if (sel) c.lerp(accent, .55); else if (hov) c.lerp(new THREE.Color(0xffffff), .25);
+    p.mats[1].color.copy(c); p.mats[0].color.copy(c.clone().lerp(new THREE.Color(dark ? 0x30393e : 0xffffff), .45));
+    p.mats[1].emissive.set(dark ? 0xffc27a : 0x000000); p.mats[1].emissiveIntensity = dark ? .85 : 0;
+  }
+}
+
+/* ================= state & UI ================= */
+const state = { allowThrough: true, mode: 'overview', selected: null, route: null, routeLen: 0, prog: 0, playing: false, tour: -1, speed: 5, kind: 'boy', floor: null, keys: {} };
+let hovered = null;
+const charPos = W(630, 878); let charYaw = Math.PI; let walkPhase = 0; let followYaw = null;
+
+// labels
+const lblHTML = p => `<span class="dot" style="background:var(${GROUPS[p.group].v})"></span>${nm(p)}${p.access ? `<span class="key" title="${L('門禁大樓', 'ID-card access')}">⚿</span>` : ''}`;
+const labelsEl = $('#labels'); const LBL = [];
+for (const p of PLACES){
+  const el = document.createElement('button'); el.className = 'lbl' + (p.kind === 'place' ? ' place' : ''); el.type = 'button';
+  el.dataset.pid = p.id; el.innerHTML = lblHTML(p);
+  el.addEventListener('click', e => { e.stopPropagation(); select(p.id); });
+  labelsEl.appendChild(el); LBL.push({ el, p, pos: p.kind === 'place' ? p.center.clone().setY(3) : p.center.clone().setY(p.h + 4) });
+}
+for (const q of POIS){
+  const el = document.createElement('div'); el.className = 'lbl poi' + (q.gate ? ' gate' : '');
+  el.innerHTML = `<span class="pg">${q.g}</span>${L(q.name, q.en)}`; labelsEl.appendChild(el); LBL.push({ el, poi: true, q, pos: W(q.at[0], q.at[1], 1.5) });
+}
+// legends
+function renderLegend(){ const h = Object.entries(GROUPS).filter(([k]) => k !== 'other').map(([k, g]) => `<span><i style="background:var(${g.v})"></i>${gname(k)}</span>`).join(''); $('#legend').innerHTML = h; $('#legend2').innerHTML = h; }
+renderLegend();
+
+const toastEl = $('#toast'); let toastT = 0;
+function toast(msg){ toastEl.textContent = msg; toastEl.style.opacity = 1; clearTimeout(toastT); toastT = setTimeout(() => toastEl.style.opacity = 0, 2400); }
+
+// modes
+function setPressed(){ ['overview', 'plan', 'walk'].forEach(m => $('#m-' + m).setAttribute('aria-pressed', state.mode === m)); }
+let tween = null;
+function fly(pos, target, dur = .9){ tween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: target, t: 0, dur }; }
+function setMode(m, opts = {}){
+  const prev = state.mode; state.mode = m; setPressed();
+  controls.enableRotate = m !== 'plan';
+  controls.mouseButtons.LEFT = m === 'plan' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
+  // touch: map-like — one finger moves the map, two fingers zoom/rotate; walking keeps one-finger look-around
+  controls.touches.ONE = m === 'walk' ? THREE.TOUCH.ROTATE : THREE.TOUCH.PAN;
+  controls.touches.TWO = m === 'overview' ? THREE.TOUCH.DOLLY_ROTATE : THREE.TOUCH.DOLLY_PAN;
+  $('#joy').hidden = !(m === 'walk' && matchMedia('(pointer:coarse)').matches);
+  if (m === 'plan'){
+    controls.minPolarAngle = 0; controls.maxPolarAngle = 0.001;
+    const t = prev === 'walk' ? charPos.clone() : controls.target.clone().setY(0);
+    fly(planPos(t, 400), t);
+  } else if (m === 'overview'){
+    controls.minPolarAngle = 0; controls.maxPolarAngle = 1.38;
+    const t = prev === 'walk' ? charPos.clone() : controls.target.clone().setY(0);
+    if (!opts.noFly) fly(overviewPos(t), t);
+  } else {
+    controls.minPolarAngle = .25; controls.maxPolarAngle = 1.45;
+    const az = Math.atan2(camera.position.x - controls.target.x, camera.position.z - controls.target.z);
+    const t = charPos.clone().setY(1.3);
+    fly(new THREE.Vector3(t.x + Math.sin(az) * 15, 9, t.z + Math.cos(az) * 15), t, 1.1);
+  }
+}
+$('#m-overview').onclick = () => setMode('overview'); $('#m-plan').onclick = () => setMode('plan'); $('#m-walk').onclick = () => setMode('walk');
+
+function frameBuilding(p){
+  if (state.mode === 'walk') return;
+  const t = p.center.clone().setY(p.h ? p.h * .35 : 0);
+  if (state.mode === 'plan'){ fly(planPos(t, Math.max(140, p.h * 4 + 90)), t.setY(0)); return; }
+  const size = p.poly ? Math.max(...p.poly.map(q => Math.hypot(q[0] - p.center.x / S - 640, q[1] - p.center.z / S - 500))) * S : 20;
+  const dist = Math.max(70, size * 2.6 + p.h * 1.6);
+  const dir = camera.position.clone().sub(controls.target).setY(0).normalize();
+  fly(t.clone().add(dir.multiplyScalar(dist * .78)).setY(t.y + dist * .62), t);
+}
+
+// selection & card
+const intro = $('#intro'), card = $('#card');
+function hideIntro(){ intro.hidden = true; document.body.classList.remove('intro-open'); }
+function select(id, opts = {}){
+  const p = BY[id]; if (!p) return;
+  hideIntro(); state.selected = id; state.floor = opts.floor || null; showSlab(p.poly ? p : null, state.floor);
+  LBL.forEach(l => l.el.classList.toggle('sel', l.p === p));
+  refreshHighlight(); renderCard(p); planRoute(p, !!opts.autoplay);
+  if (opts.fly !== false){ if (state.route && state.routeLen > 25 && !opts.autoplay) fitRoute(state.route); else frameBuilding(p); }
+}
+function deselect(){
+  state.selected = null; state.floor = null; showSlab(null); showDoors(null); card.hidden = true; document.body.classList.remove('card-open', 'has-sel'); syncOffset();
+  LBL.forEach(l => l.el.classList.remove('sel')); refreshHighlight();
+  if (state.tour < 0 && !state.playing) clearRoute();
+}
+function fmtDist(m){ const min = Math.max(1, Math.round(m / 1.3 / 60)), r = Math.round(m / 5) * 5; return L(`約 ${r} 公尺 · 步行 ${min} 分鐘`, `About ${r} m · ${min} min walk`); }
+function renderCard(p, opts = {}){
+  const g = GROUPS[p.group]; const floors = p.floors ? L(`${p.est ? '約 ' : ''}${p.floors}<small> 層${p.est ? '（示意）' : ''}</small>`, `${p.est ? '~' : ''}${p.floors}<small> floors${p.est ? ' (est.)' : ''}</small>`) : '—';
+  const code = p.code ? `<span class="mono">${p.code}xxx</span>` : '—';
+  const acc = p.access ? L('校園 IC 卡', 'Campus ID card') : (p.kind === 'place' ? L('開放', 'Open') : '—');
+  const fl = p.fl ? `<div class="floors"><h3>${L('各樓層（點選可在模型上標出）', 'Floors (tap to highlight on the model)')}</h3>${p.fl.map(([f, t], fi) => `<button class="fl${state.floor === f ? ' on' : ''}" data-f="${f}"><b>${f}F</b><span>${L(t, p.enFl ? p.enFl[fi] : t)}</span></button>`).join('')}</div><p class="src">${L(SRC_FLOORS, SRC_FLOORS_EN)}</p>` : '';
+  const i = TOUR.indexOf(p.id);
+  card.innerHTML = `
+  <button class="handle" id="cardHandle" aria-label="${L('展開或收合', 'Expand or collapse')}"></button>
+  <div class="card-head">
+    <div class="card-top"><span class="chip"><i style="background:var(${g.v})"></i>${gname(p.group)}</span><button class="xbtn" id="cardX" aria-label="${L('關閉', 'Close')}">×</button></div>
+    <h2>${nm(p)}${(LANG === 'en' ? p.enAlt : p.alt) ? `<small>${L(p.alt, p.enAlt)}</small>` : ''}</h2>
+    <div class="card-dist" id="cardDist"></div>
+    <button class="card-more" id="cardMore">${moreTxt(p, true)}</button>
+    ${p.kind === 'place' ? '' : `<dl class="facts"><div class="fact"><dt>${L('樓層', 'Floors')}</dt><dd>${floors}</dd></div><div class="fact"><dt>${L('教室代碼', 'Room code')}</dt><dd>${code}</dd></div><div class="fact"><dt>${L('夜間門禁', 'After hours')}</dt><dd>${acc}</dd></div></dl>`}
+  </div>
+  <div class="card-body">
+    <p>${L(p.note, p.enNote)}</p>
+    ${p.doors ? `<div class="floors"><h3>${L(`入口 ${p.doors.length} 處（點選可改走這個入口）`, `${p.doors.length} entrances (tap one to route there)`)}</h3><div id="doorList"></div></div>` : ''}
+    ${p.access ? `<p class="src">${L('非上班上課時段（夜間、國定假日）實施門禁，需刷個人校園 IC 卡進入，離開不受限。', 'Outside office and class hours (nights, national holidays) you need your campus ID card to get in; leaving is unrestricted.')}</p>` : ''}
+    ${fl}
+  </div>
+  <div class="card-foot">
+    ${tourArrived() ? `<button class="btn signal" id="cardTour">${L('下一站 →', 'Next stop →')}</button>` : `<button class="btn signal" id="cardGo">${L('▶ 跟我走', '▶ Follow me')}</button>`}
+    <button class="btn" id="cardHere" title="${L('把起點設在這棟', 'Start from this building')}">${L('◉ 我在這裡', '◉ I’m here')}</button>
+    <button class="btn" id="cardNext">${L('下一棟 →', 'Next →')}</button>
+  </div>`;
+  card.hidden = false; document.body.classList.add('card-open', 'has-sel');
+  card.classList.toggle('collapsed', isPhone() && !opts.expand);
+  $('#cardX').onclick = deselect;
+  if ($('#cardGo')) $('#cardGo').onclick = () => goTo(p);
+  $('#cardHere').onclick = () => setStart(p);
+  if (p.doors) updateDoorList(routeOptions(p), state.doorIdx ?? 0);
+  if ($('#cardTour')) $('#cardTour').onclick = nextTourStop;
+  $('#cardMore').onclick = () => setCollapsed(!card.classList.contains('collapsed'));
+  bindHandle();
+  syncOffset();
+  $('#cardNext').onclick = () => select(TOUR[(i + 1) % TOUR.length]);
+  card.querySelectorAll('.fl').forEach(b => b.onclick = () => {
+    const f = +b.dataset.f; state.floor = state.floor === f ? null : f; showSlab(p, state.floor);
+    card.querySelectorAll('.fl').forEach(x => x.classList.toggle('on', +x.dataset.f === state.floor));
+  });
+}
+
+// entrances
+function updateDoorList(opts, cur){
+  const el = $('#doorList'); if (!el) return; const min = Math.min(...opts.map(o => o.len));
+  el.innerHTML = opts.map(o => `<button class="fl${o.i === cur ? ' on' : ''}" data-d="${o.i}"><b>${'ABC'[o.i]}</b><span>${L(o.label, o.labelEn)}<br><small style="opacity:.75">${isFinite(o.len) ? fmtDist(o.len) : L('目前位置走不到', 'Not reachable from here')}${o.len === min ? L(' · 最近', ' · nearest') : ''}</small></span></button>`).join('');
+  el.querySelectorAll('.fl').forEach(b => b.onclick = () => { const p = BY[state.selected]; planRoute(p, false, +b.dataset.d); });
+}
+const doorGroup = new THREE.Group(); scene.add(doorGroup);
+const doorMatOn = new THREE.MeshBasicMaterial({ color: 0xdc6a2b }), doorMatOff = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .85 });
+function showDoors(p, cur){
+  doorGroup.clear(); doorLbls.forEach(l => l.el.remove()); doorLbls.length = 0;
+  if (!p) return;
+  p.doorsW.forEach((d, i) => {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 2.6, 16), i === cur ? doorMatOn : doorMatOff); m.position.set(d.w.x, 1.3, d.w.z); doorGroup.add(m);
+    const el = document.createElement('div'); el.className = 'lbl poi' + (i === cur ? ' gate' : ''); el.innerHTML = `<span class="pg">${'ABC'[i]}</span>${L(d.label.split('（')[0].replace('，內部相通', ''), d.labelEn.split(' (')[0])}`;
+    labelsEl.appendChild(el); const l = { el, poi: true, door: true, pos: d.w.clone().setY(4) }; doorLbls.push(l);
+  });
+}
+const doorLbls = [], thruLbls = [];
+const thruGroup = new THREE.Group(); scene.add(thruGroup);
+function showThru(info){
+  thruGroup.clear(); thruLbls.forEach(l => l.el.remove()); thruLbls.length = 0;
+  if (!info) return;
+  const b = info.b;
+  [[info.inPt, L('進', 'In'), info.inSide], [info.outPt, L('出', 'Out'), info.outSide]].forEach(([v, tag, side], n) => {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 3, 16), n ? doorMatOff : doorMatOn); m.position.set(v.x, 1.5, v.z); thruGroup.add(m);
+    const el = document.createElement('div'); el.className = 'lbl poi gate'; el.innerHTML = `<span class="pg">${tag}</span>${L(b.name + SIDE[side][0], b.en + ' · ' + SIDE[side][1])}`;
+    labelsEl.appendChild(el); thruLbls.push({ el, poi: true, door: true, pos: v.clone().setY(5) });
+  });
+}
+function setThroughAllowed(ok){
+  state.allowThrough = ok; THRU_CELLS.forEach(k => { grid[k] = ok ? 1 : 0; });
+  if (!ok && buildingAt(charPos)){ const k = nearestCell(charPos.x, charPos.z); const c = cellPos(k); charPos.set(c.x, 0, c.z); }
+}
+// routing
+function clearRoute(){ showDoors(null); showThru(null); state.routeThru = null; state.steps = null; $('#wbSteps').hidden = true; $('#wbStep').setAttribute('aria-expanded', false); state.route = null; state.playing = false; drawRoute(null); $('#walkbar').hidden = true; document.body.classList.remove('has-route'); }
+function routeOptions(target){
+  const ds = target.doorsW || [{ w: target.doorW, label: '' }];
+  return ds.map((d, i) => { const pts = findPath(charPos, d.w); return { i, label: d.label, labelEn: d.labelEn, pts, len: pts ? pathLen(pts) : Infinity }; });
+}
+function planRoute(target, autoplay, doorIdx = null){
+  const opts = routeOptions(target), multi = opts.length > 1;
+  const best = doorIdx != null ? opts[doorIdx] : opts.reduce((a, b) => b.len < a.len ? b : a);
+  const pts = best && best.pts;
+  if (!pts){ toast(L('這裡走不過去，換個地方試試', 'Can’t get there from here. Try another spot.')); return; }
+  state.route = pts; state.routeLen = pathLen(pts); state.prog = 0; state.playing = false; state.dest = target.name || '這裡'; state.destEn = target.en || 'here'; state.entranceEn = multi ? best.labelEn : null;
+  state.entrance = multi ? best.label : null; state.doorIdx = multi ? best.i : null;
+  state.steps = buildSteps(pts, state.dest + (multi ? `・${best.label}` : ''), state.destEn + (multi ? ` · ${best.labelEn}` : '')); renderSteps();
+  showDoors(multi ? target : null, state.doorIdx);
+  state.routeThru = thruInfo; showThru(thruInfo);
+  const cd = $('#cardDist'); if (cd && state.selected === target.id){
+    cd.textContent = L(`從${nearestName(true)}出發 · ${fmtDist(state.routeLen)}${thruInfo ? ` · 穿越${thruInfo.b.name}` : ''}`, `From ${nearestName(true)} · ${fmtDist(state.routeLen)}${thruInfo ? ` · through ${thruInfo.b.en}` : ''}`);
+  }
+  if (multi && !card.hidden && state.selected === target.id) updateDoorList(opts, best.i);
+  drawRoute(pts); updateWalkbar(); if (autoplay) play();
+}
+// ---- turn-by-turn text from the smoothed path
+function placeAt(v){
+  // returns the spot in both languages: full phrase + bare name
+  const P = (zh, en, zhB, enB) => ({ zh, en, zhB: zhB ?? zh, enB: enB ?? en });
+  const px = v.x / S + 640, py = v.z / S + 500;
+  if (py > 905) return P('三民路上', 'on Sanmin Rd.', '三民路', 'Sanmin Rd.');
+  if (py < 76 && px > 720 && px < 1000) return P('中華路入口', 'at the Zhonghua Rd. entrance', '中華路入口', 'the Zhonghua Rd. entrance');
+  if (px > 1200 && px < 1246) return P('錦平街上', 'on Jinping St.', '錦平街', 'Jinping St.');
+  let best = null, bd = 1e9;
+  for (const p of PLACES){
+    const d = p.poly ? polyD(px, py, p.poly) * S : p.center.distanceTo(v) - (p.id === 'track' ? 35 : p.id === 'tennis' ? 22 : p.id === 'plaza' ? 30 : 4);
+    if (d < bd){ bd = d; best = p; }
+  }
+  if (!best || bd > 45) return P('路口', 'at the junction', '路口', 'the junction');
+  if (best.kind === 'place') return P(best.name, `at the ${best.en}`, best.name, `the ${best.en}`);
+  if (best.doorW.distanceTo(v) < 14) return P(`${best.name}門口`, `at the ${best.en} entrance`, best.name, best.en);
+  return P(`${best.name}旁`, `beside ${best.en}`, best.name, best.en);
+}
+const r5 = m => Math.max(5, Math.round(m / 5) * 5);
+let thruInfo = null;
+// which wall of a building a point is on, named by campus direction (中華路 = 北, 三民路 = 南, 錦平街 = 東)
+const SIDE = { N: ['北側', 'north'], S: ['南側', 'south'], E: ['東側', 'east'], W: ['西側', 'west'] };
+const sideTxt = k => L(SIDE[k][0], SIDE[k][1]);
+function sideOf(b, v){ const dx = v.x - b.center.x, dz = v.z - b.center.z; return Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? 'E' : 'W') : (dz < 0 ? 'N' : 'S'); }
+const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+function buildSteps(pts, dest, destEn){
+  thruInfo = null;
+  const inB = v => OBST.find(bb => pip(v.x / S + 640, v.z / S + 500, bb.poly)) || null;
+  // 1) walk the real path every ~1 m and record where it enters / leaves a building
+  const marks = []; let acc0 = 0, cur = inB(pts[0]);
+  for (let i = 1; i < pts.length; i++){
+    const a = pts[i - 1], b = pts[i], Ln = a.distanceTo(b), n = Math.max(1, Math.ceil(Ln));
+    for (let q = 1; q <= n; q++){
+      const v = a.clone().lerp(b, q / n), here = inB(v);
+      if (here !== cur){ marks.push({ v, d: acc0 + Ln * q / n }); cur = here; }
+    }
+    acc0 += Ln;
+  }
+  // 2) keep real turns of the path plus every building transition as vertices
+  const ks = [{ v: pts[0], d: 0 }]; let dd = 0;
+  for (let i = 1; i < pts.length - 1; i++){
+    dd += pts[i].distanceTo(pts[i - 1]);
+    const d1 = pts[i].clone().sub(pts[i - 1]).normalize(), d2 = pts[i + 1].clone().sub(pts[i]).normalize();
+    if (Math.acos(THREE.MathUtils.clamp(d1.dot(d2), -1, 1)) > .45) ks.push({ v: pts[i], d: dd });
+  }
+  marks.forEach(m => ks.push({ v: m.v, d: m.d, mark: true }));
+  const total = pathLen(pts); ks.push({ v: pts[pts.length - 1], d: total });
+  ks.sort((p, q) => p.d - q.d);
+  const kv = ks.filter((k, i) => i === 0 || k.mark || k.d - ks[i - 1].d > 4 || i === ks.length - 1);
+  // 3) indoor runs collapse into one 「穿過」 step; outdoor segments read as turns
+  const steps = []; let i = 0, prevDir = null, afterIndoor = null;
+  while (i < kv.length - 1){
+    const a = kv[i], b = kv[i + 1], bld = inB(a.v.clone().lerp(b.v, .5));
+    if (bld){
+      let j = i + 1; while (j < kv.length - 1 && inB(kv[j].v.clone().lerp(kv[j + 1].v, .5)) === bld) j++;
+      const inPt = a.v, outPt = kv[j].v, startsIn = i === 0 && inB(pts[0]) === bld, endsIn = j === kv.length - 1 && inB(pts[pts.length - 1]) === bld;
+      const iS = sideOf(bld, inPt), oS = sideOf(bld, outPt), f = placeAt(a.v), lead = i === 0 && !startsIn;
+      const zh = (lead ? `從${f.zh.replace(/旁$/, '')}出發，` : '') + (startsIn ? `從${bld.name}裡出發，往${SIDE[oS][0]}出口走出來` : endsIn ? `從${SIDE[iS][0]}入口走進${bld.name}` : `從${SIDE[iS][0]}入口走進${bld.name}，穿過大樓，從${SIDE[oS][0]}出口出來`);
+      const core = startsIn ? `start inside ${bld.en} and leave by the ${SIDE[oS][1]} exit` : endsIn ? `enter ${bld.en} by the ${SIDE[iS][1]} entrance` : `enter ${bld.en} by the ${SIDE[iS][1]} entrance, walk through, and leave by the ${SIDE[oS][1]} exit`;
+      const en = lead ? `Start from ${f.enB}, then ${core}` : cap(core);
+      steps.push({ txt: zh, en, len: kv[j].d - a.d, at: a.d, thru: true });
+      if (!thruInfo) thruInfo = { b: bld, inSide: iS, outSide: oS, inPt, outPt };
+      prevDir = outPt.clone().sub(kv[j - 1].v).setY(0).normalize(); afterIndoor = bld; i = j; continue;
+    }
+    const dir = b.v.clone().sub(a.v).setY(0).normalize(); let zh, en, straight = false;
+    if (i === 0){
+      const from = placeAt(a.v), to = placeAt(b.v), fz = from.zh.replace(/旁$/, ''), same = fz.startsWith(to.zhB) || to.zhB === '路口';
+      zh = same ? `從${fz}出發，直走` : `從${fz}出發，往${to.zhB}方向直走`;
+      en = same ? `Start from ${from.enB} and go straight` : `Start from ${from.enB} and head toward ${to.enB}`;
+    } else {
+      const ang = Math.acos(THREE.MathUtils.clamp(prevDir.dot(dir), -1, 1)), right = (prevDir.x * dir.z - prevDir.z * dir.x) > 0;
+      const kind = ang < .45 ? 'straight' : ang > 2.5 ? 'uturn' : ang < .9 ? 'slight' : 'turn'; straight = kind === 'straight';
+      const tz = { straight: '繼續直走', uturn: '迴轉', slight: `稍微向${right ? '右' : '左'}`, turn: `${right ? '右' : '左'}轉` }[kind];
+      const te = { straight: 'continue straight', uturn: 'make a U-turn', slight: `bear ${right ? 'right' : 'left'}`, turn: `turn ${right ? 'right' : 'left'}` }[kind];
+      const pa = placeAt(a.v);
+      if (afterIndoor){ zh = straight ? '出來後直走' : `出來後${tz}，直走`; en = straight ? 'after exiting, go straight' : `After exiting, ${te} and go straight`; }
+      else { zh = straight ? `在${pa.zh}繼續直走` : `在${pa.zh}${tz}，直走`; en = straight ? `Continue straight ${pa.en}` : `${cap(te)} ${pa.en}, then go straight`; }
+    }
+    const last = steps[steps.length - 1];
+    if (last && !last.thru && straight && !afterIndoor) last.len += b.d - a.d;
+    else if (last && afterIndoor && straight){ last.txt += '，再直走'; last.en += ', then go straight'; last.len += b.d - a.d; }
+    else steps.push({ txt: zh, en, len: b.d - a.d, at: a.d });
+    prevDir = dir; afterIndoor = null; i++;
+  }
+  steps.push({ txt: `抵達${dest}`, en: `Arrive at ${destEn}`, len: 0, at: total, end: true });
+  return steps;
+}
+function curStep(){ const st = state.steps || []; let k = 0; for (let i = 0; i < st.length; i++) if (st[i].at <= state.prog + .5) k = i; return k; }
+function renderSteps(){
+  const st = state.steps || []; const k = curStep();
+  $('#wbSteps').innerHTML = st.map((x, i) => `<li class="${i < k ? 'done' : i === k ? 'now' : ''}">${L(x.txt, x.en)}${x.end ? '' : `<small>${r5(x.len)} ${L('公尺', 'm')}</small>`}</li>`).join('');
+}
+function stepLine(){
+  const st = state.steps || []; if (!st.length) return '';
+  const k = curStep(), s0 = st[k];
+  if (s0.end) return `<b>${L('已抵達' + state.dest, 'Arrived at ' + state.destEn)}</b>`;
+  const left = s0.at + s0.len - state.prog, nxt = st[k + 1];
+  if (state.prog < 1) return `<b>${L(s0.txt, s0.en)}</b> <small>${r5(s0.len)} ${L('公尺', 'm')}</small>`;
+  return `<b>${L(nxt.end ? nxt.txt : '接著' + nxt.txt.replace(/，直走$/, ''), nxt.end ? nxt.en : 'Then ' + nxt.en.charAt(0).toLowerCase() + nxt.en.slice(1).replace(/, then go straight$/, ''))}</b> <small>${L(`再 ${r5(left)} 公尺`, `in ${r5(left)} m`)}</small>`;
+}
+$('#wbStep').onclick = () => { const l = $('#wbSteps'); l.hidden = !l.hidden; $('#wbStep').setAttribute('aria-expanded', !l.hidden); renderSteps(); syncOffset(); };
+function fitRoute(pts){
+  if (state.mode === 'walk' && !state.playing) setMode('overview', { noFly: true });
+  const b = new THREE.Box3().setFromPoints(pts), c = b.getCenter(new THREE.Vector3()).setY(0), sz = b.getSize(new THREE.Vector3());
+  const r = Math.max(sz.x, sz.z) / 2 + 22, a = innerWidth / innerHeight;
+  const d = r / (Math.tan(19 * Math.PI / 180) * Math.min(1, a)) * 1.08;
+  if (state.mode === 'plan') fly(portrait() ? new THREE.Vector3(c.x + .01, d, c.z) : new THREE.Vector3(c.x, d, c.z + .01), c);
+  else { const dir = camera.position.clone().sub(controls.target).setY(0).normalize(); fly(c.clone().add(dir.multiplyScalar(d * .62)).setY(d * .78), c); }
+}
+function goTo(p){
+  if (!state.route || state.dest !== p.name) planRoute(p, false);
+  if (state.route) play();
+}
+function setStart(p){
+  const k = nearestCell(p.doorW.x, p.doorW.z); if (k < 0) return;
+  const c = cellPos(k); charPos.set(c.x, 0, c.z); state.tour = -1; clearRoute();
+  toast(L(`起點已設在${p.name}，選下一個目的地吧`, `Starting from ${p.en}. Pick your next destination.`)); updateHere();
+}
+function updateWalkbar(){
+  const wb = $('#walkbar'); document.body.classList.toggle('has-route', !!state.route); if (!state.route){ if (!wb.hidden){ wb.hidden = true; syncOffset(); } return; }
+  if (wb.hidden){ wb.hidden = false; syncOffset(); } $('#wbChip').textContent = state.speed + '×';
+  const left = Math.max(0, state.routeLen - state.prog);
+  $('#wbTitle').textContent = state.tour >= 0 ? L(`${state.tourName || '新生路線'} ${state.tour + 1}/${TOUR.length} · ${state.dest}`, `${state.tourName ? 'Step' : 'Tour'} ${state.tour + 1}/${TOUR.length} · ${state.destEn}`) : L(`前往 ${state.dest}`, `To ${state.destEn}`);
+  $('#wbSub').textContent = (step.lastInside && state.playing ? L(`正在穿過${step.lastInside.name} · `, `Walking through ${step.lastInside.en} · `) : '') + (left < 1 ? L('已抵達', 'Arrived') : fmtDist(left)) + (state.entrance ? ` · ${L(state.entrance, state.entranceEn)}` : '');
+  $('#walkbar').classList.toggle('thru', !!(step.lastInside && state.playing));
+  $('#wbPlay').textContent = state.playing ? L('❚❚ 暫停', '❚❚ Pause') : (left < 1 ? L('↻ 再走一次', '↻ Walk again') : L('▶ 繼續', '▶ Resume'));
+  $('#wbPlay').hidden = state.tour >= 0 && left < 1;
+  $('#wbNext').hidden = !(state.tour >= 0 && left < 1);
+  $('#wbProg').style.width = (state.routeLen ? Math.min(100, state.prog / state.routeLen * 100) : 0) + '%';
+  $('#wbStep').innerHTML = stepLine();
+  if (!$('#wbSteps').hidden){ const k = curStep(); if (k !== updateWalkbar.k){ updateWalkbar.k = k; renderSteps(); } }
+  if (!state.playing && left >= 1 && state.prog < 1) $('#wbPlay').textContent = L('▶ 跟我走', '▶ Follow me');
+}
+function play(){
+  if (!state.route) return;
+  if (state.routeLen - state.prog < 1){ const tg = BY[state.selected]; if (tg) return planRoute(tg, true); }
+  state.playing = true; followHold = -1e9;
+  if (state.mode !== 'walk' && state.mode !== 'overview') setMode('overview', { noFly: true });
+  if (state.mode === 'overview') tween = null; // follow camera eases in from wherever we are
+  if (isPhone() && !card.hidden){ card.hidden = true; document.body.classList.remove('card-open'); syncOffset(); }
+  updateWalkbar();
+}
+$('#wbPlay').onclick = () => { if (state.playing){ state.playing = false; updateWalkbar(); } else play(); };
+$('#wbClose').onclick = () => { state.tour = -1; clearRoute(); };
+
+$('#wbNext').onclick = () => nextTourStop();
+$('#speed').oninput = e => { state.speed = +e.target.value; $('#speedOut').textContent = state.speed + '×'; };
+function arrive(){
+  state.playing = false; updateWalkbar(); toast(L(`已抵達 ${state.dest}`, `Arrived at ${state.destEn}`));
+  if (state.selected && (card.hidden || state.tour >= 0)) renderCard(BY[state.selected]);
+  if (state.tour >= 0 && state.tour === TOUR.length - 1){ toast(state.tourName ? L(`${state.tourName}的每一站都走完了！`, 'All stops done!') : L('新生路線走完了，歡迎自由探索！', 'Tour complete. Feel free to explore!')); state.tourName = null; state.tourFloors = null; state.tour = -1; updateWalkbar(); }
+}
+function nextTourStop(){ state.tour++; if (state.tour >= TOUR.length){ state.tour = -1; clearRoute(); return; } select(TOUR[state.tour], { autoplay: true, fly: false, floor: state.tourFloors ? state.tourFloors[state.tour] : null }); }
+function setEntry(key, quiet){
+  const e = ENTRIES[key]; if (!e) return; state.entry = key; TOUR = TOURS[key];
+  document.querySelectorAll('[class^="en-"]').forEach(b => b.setAttribute('aria-pressed', b.classList.contains('en-' + key)));
+  charPos.copy(W(e.at[0], e.at[1])); charYaw = key === 'zhonghua' ? 0 : Math.PI;
+  try { localStorage.setItem('nutc-entry', key); } catch (err) {}
+  if (state.tour >= 0) state.tour = -1;
+  const sel = state.selected && BY[state.selected];
+  if (sel) planRoute(sel, false); else clearRoute();
+  if (sel && !card.hidden) renderCard(sel);
+  updateHere();
+  if (!quiet){ toast(L(`起點設為${e.name}`, `Starting from ${e.en}`)); if (state.mode !== 'walk') fly(state.mode === 'plan' ? planPos(charPos, 220) : charPos.clone().add(new THREE.Vector3(40, 90, 110)), charPos.clone()); }
+}
+document.querySelectorAll('.en-sanmin').forEach(b => b.onclick = () => setEntry('sanmin'));
+document.querySelectorAll('.en-zhonghua').forEach(b => b.onclick = () => setEntry('zhonghua'));
+function resetAll(){
+  tween = null; state.tour = -1; state.playing = false; state.floor = null;
+  if (!$('#searchModal').hidden) $('#searchModal').hidden = true; $('#aboutModal').hidden = true; $('#layers').hidden = true;
+  setThroughAllowed(true); state.thruAvoided = false;
+  deselect(); clearRoute();
+  $('#ly-labels').checked = true; $('#ly-poi').checked = true; $('#ly-access').checked = false; $('#ly-city').checked = true;
+  document.body.classList.remove('hide-labels', 'hide-poi', 'show-access', 'hide-mini'); setMiniCollapsed(false); city.visible = school.visible = true;
+  state.speed = 5; $('#speed').value = 5; $('#speedOut').textContent = '5×';
+  setEntry(state.entry || 'sanmin', true);
+  setMode('overview', { noFly: true });
+  const c = new THREE.Vector3(30, 0, 12); fly(overviewPos(c), c, 1);
+  intro.hidden = false; document.body.classList.add('intro-open');
+  toast(L('已還原到起始畫面', 'Back to the start view'));
+}
+$('#resetBtn').onclick = resetAll;
+// ---- bilingual toggle
+function updateHere(){ $('#hereTxt').textContent = nearestName() + L(' · 點這裡回到人物', ' · tap to find yourself'); }
+function setLang(lang, quiet){
+  LANG = lang === 'en' ? 'en' : 'zh';
+  document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-Hant-TW';
+  try { localStorage.setItem('nutc-lang', LANG); } catch (err) {}
+  document.querySelectorAll('[data-en]').forEach(el => { if (el.dataset.zh == null) el.dataset.zh = el.innerHTML; el.innerHTML = LANG === 'en' ? el.dataset.en : el.dataset.zh; });
+  document.querySelectorAll('[data-en-ph]').forEach(el => { if (el.dataset.zhPh == null) el.dataset.zhPh = el.placeholder; el.placeholder = LANG === 'en' ? el.dataset.enPh : el.dataset.zhPh; });
+  const lb = $('#langBtn'); lb.textContent = LANG === 'en' ? '中' : 'EN'; lb.setAttribute('aria-label', LANG === 'en' ? '切換成中文' : 'Switch to English');
+  LBL.forEach(l => { if (l.p) l.el.innerHTML = lblHTML(l.p); else if (l.q) l.el.innerHTML = `<span class="pg">${l.q.g}</span>${L(l.q.name, l.q.en)}`; l.w = 0; });
+  renderLegend(); paintGround(dark); updateHere();
+  const sel = state.selected && BY[state.selected];
+  if (sel && !card.hidden){ const col = card.classList.contains('collapsed'); renderCard(sel, { expand: !col }); }
+  if (state.route){ if (sel && !state.playing) planRoute(sel, false, state.doorIdx); else { renderSteps(); updateWalkbar(); } }
+  if (!$('#searchModal').hidden) runSearch();
+  if (!quiet) toast(L('已切換成中文', 'Switched to English'));
+}
+$('#langBtn').onclick = () => setLang(LANG === 'en' ? 'zh' : 'en');
+function setStyle(st, quiet){
+  STYLE = st === 'sketch' ? 'sketch' : 'model';
+  $('#st-model').setAttribute('aria-pressed', STYLE === 'model'); $('#st-sketch').setAttribute('aria-pressed', STYLE === 'sketch');
+  try { localStorage.setItem('nutc-style', STYLE); } catch (err) {}
+  applyTheme();
+  if (!quiet) toast(STYLE === 'sketch' ? L('已切換成鉛筆手繪風', 'Pencil sketch style') : L('已切換成 3D 模型風', '3D model style'));
+}
+$('#st-model').onclick = () => setStyle('model'); $('#st-sketch').onclick = () => setStyle('sketch');
+$('#startTour').onclick = () => { hideIntro(); TOUR = TOURS[state.entry || 'sanmin']; state.tourName = null; state.tourFloors = null; state.tour = -1; const e = ENTRIES[state.entry || 'sanmin']; charPos.copy(W(e.at[0], e.at[1])); nextTourStop(); };
+$('#freeExplore').onclick = hideIntro;
+$('#introSearch').onclick = () => { hideIntro(); openSearch(); };
+
+// here button
+$('#hereBtn').onclick = () => {
+  if (state.mode === 'walk'){ const az = Math.atan2(camera.position.x - controls.target.x, camera.position.z - controls.target.z); const t = charPos.clone().setY(1.3); fly(new THREE.Vector3(t.x + Math.sin(az) * 15, 9, t.z + Math.cos(az) * 15), t); }
+  else if (state.mode === 'plan') fly(planPos(charPos, 160), charPos.clone());
+  else fly(charPos.clone().add(new THREE.Vector3(30, 60, 80)), charPos.clone());
+};
+function nearestName(bare){
+  let best = null, bd = 1e9;
+  for (const p of PLACES){ const d = p.doorW.distanceTo(charPos); if (d < bd){ bd = d; best = p; } }
+  if (charPos.z > (905 - 500) * S) return L(bare ? '三民路' : '三民路上', bare ? 'Sanmin Rd.' : 'on Sanmin Rd.');
+  if (charPos.z < (60 - 500) * S) return L(bare ? '中華路' : '中華路上', bare ? 'Zhonghua Rd.' : 'on Zhonghua Rd.');
+  if (charPos.z < (96 - 500) * S && charPos.x > (720 - 640) * S && charPos.x < (1000 - 640) * S) return L('中華路入口', 'the Zhonghua Rd. entrance');
+  if (charPos.x > (1200 - 640) * S && charPos.x < (1246 - 640) * S) return L(bare ? '錦平街' : '錦平街上', bare ? 'Jinping St.' : 'on Jinping St.');
+  if (bare) return nm(best);
+  return L(`${best.name}${bd < 14 ? '門口' : '附近'}`, `${bd < 14 ? 'at the' : 'near the'} ${best.en}${bd < 14 ? ' entrance' : ''}`);
+}
+
+// zoom & layers
+function zoom(f){ const off = camera.position.clone().sub(controls.target); const len = THREE.MathUtils.clamp(off.length() * f, controls.minDistance, controls.maxDistance); fly(controls.target.clone().add(off.setLength(len)), controls.target.clone(), .35); }
+$('#zin').onclick = () => zoom(.72); $('#zout').onclick = () => zoom(1.38);
+$('#layersBtn').onclick = () => { const l = $('#layers'); l.hidden = !l.hidden; $('#layersBtn').setAttribute('aria-expanded', !l.hidden); };
+$('#ly-labels').onchange = e => document.body.classList.toggle('hide-labels', !e.target.checked);
+$('#ly-poi').onchange = e => document.body.classList.toggle('hide-poi', !e.target.checked);
+$('#ly-access').onchange = e => { document.body.classList.toggle('show-access', e.target.checked); if (e.target.checked) toast(L('⚿ 夜間與假日需刷校園 IC 卡的大樓', '⚿ Buildings that need a campus ID card at night and on holidays')); };
+$('#ly-city').onchange = e => { city.visible = school.visible = e.target.checked; sketchGroup.children.forEach(o => { if (o.userData.city) o.visible = e.target.checked; }); };
+function setKind(k){ state.kind = k; buildChar(k); $('#ch-boy').setAttribute('aria-pressed', k === 'boy'); $('#ch-girl').setAttribute('aria-pressed', k === 'girl'); }
+$('#ch-boy').onclick = () => setKind('boy'); $('#ch-girl').onclick = () => setKind('girl');
+
+// search
+const sm = $('#searchModal'), q = $('#q'), sres = $('#sres'); let sIdx = 0, sItems = [];
+function openSearch(){ sm.hidden = false; q.value = ''; runSearch(); setTimeout(() => q.focus(), 0); }
+function closeSearch(){ sm.hidden = true; canvas.focus(); }
+function runSearch(){
+  const v = q.value.trim(); sItems = [];
+  const m = v.match(/^(\d)(\d)\d{2}[A-Za-z]?$/);
+  if (m){
+    const id = CODE[m[1]];
+    if (id && BY[id].floors >= +m[2] && +m[2] > 0) sItems.push({ id, floor: +m[2], label: L(`${v.toUpperCase()} → ${BY[id].name} ${m[2]} 樓`, `${v.toUpperCase()} → ${BY[id].en}, ${m[2]}F`), sub: L('依教室編號規則：第 1 碼大樓、第 2 碼樓層', 'Room code: 1st digit = building, 2nd digit = floor') });
+    else sItems.push({ none: true, label: L(`查不到 ${v} 的大樓`, `No building found for ${v}`), sub: L('目前收錄 3 開頭（中科）、4（昌明）、5（翰英）、6（弘業）、8（奇秀）', 'Covered codes: 3 (Zhongke), 4 (Changming), 5 (Hanying), 6 (Hongye), 8 (Qixiu)') });
+  }
+  const lv = v.toLowerCase();
+  for (const p of PLACES){
+    // search both languages regardless of the current UI language
+    const flz = p.fl || [], fle = p.enFl || [];
+    const hay = [p.name, p.alt, p.en, p.enAlt, GROUPS[p.group].name, GROUPS_EN[p.group], p.note, p.enNote, ...flz.map(x => x[1]), ...fle].join(' ').toLowerCase();
+    if (!v || hay.includes(lv)){
+      let sub = gname(p.group), floor = null;
+      if (v && p.fl){
+        const k = flz.findIndex((x, i) => x[1].toLowerCase().includes(lv) || (fle[i] || '').toLowerCase().includes(lv));
+        if (k >= 0){ floor = flz[k][0]; sub = L(`${floor} 樓：${flz[k][1]}`, `${floor}F: ${fle[k] || flz[k][1]}`); }
+      }
+      const alt = L(p.alt, p.enAlt);
+      sItems.push({ id: p.id, floor, label: nm(p) + (alt ? L(`（${alt}）`, ` (${alt})`) : ''), sub, g: p.group });
+    }
+  }
+  sIdx = 0;
+  if (!v){
+    const GO = Object.keys(GROUPS); sItems.sort((a, b) => GO.indexOf(a.g) - GO.indexOf(b.g));
+    const QUICK = L(['圖書館', '健康中心', '國貿', '學務長', '便利超商', '國際事務處', '語言中心', '網球場'], ['Library', 'Health Center', 'International Business', 'Student Affairs', 'OK Mart', 'International Affairs', 'Language Center', 'Tennis']);
+    let html = `<div class="qchips">${QUICK.map(t => `<button class="qchip" data-q="${t}">${t}</button>`).join('')}</div>`, last = null;
+    sItems.forEach((it, i) => {
+      if (it.g !== last){ last = it.g; html += `<div class="sgh">${gname(it.g)}</div>`; }
+      const P = BY[it.id], fs = P.floors ? L((P.est ? '約 ' : '') + P.floors + ' 層', (P.est ? '~' : '') + P.floors + ' floors') : L('戶外空間', 'Outdoor');
+      html += `<button class="sr${i === sIdx ? ' on' : ''}" data-i="${i}"><i style="background:var(${GROUPS[it.g].v})"></i><span>${it.label}<br><small>${fs}${P.fl ? L(' · 有樓層資料', ' · floor details') : ''}</small></span></button>`;
+    });
+    sres.innerHTML = html;
+    sres.querySelectorAll('.qchip').forEach(b => b.onclick = () => { q.value = b.dataset.q; runSearch(); q.focus(); });
+    sres.querySelectorAll('.sr').forEach(b => b.onclick = () => pick(+b.dataset.i));
+    return;
+  }
+  sres.innerHTML = sItems.length ? sItems.map((it, i) => `<button class="sr${i === sIdx ? ' on' : ''}" data-i="${i}"><i style="background:${it.g ? `var(${GROUPS[it.g].v})` : 'var(--signal)'}"></i><span>${it.label}<br><small>${it.sub}</small></span></button>`).join('') : `<div class="sempty">${L(`找不到「${v}」。試試系名，例如「國貿」或「健康中心」。`, `No match for “${v}”. Try a department, such as “Business” or “Health Center”.`)}</div>`;
+  sres.querySelectorAll('.sr').forEach(b => b.onclick = () => pick(+b.dataset.i));
+}
+function pick(i){ const it = sItems[i]; if (!it || it.none) return; closeSearch(); select(it.id, { floor: it.floor || null }); }
+q.oninput = runSearch;
+q.onkeydown = e => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); sIdx = (sIdx + (e.key === 'ArrowDown' ? 1 : -1) + sItems.length) % sItems.length; sres.querySelectorAll('.sr').forEach((b, k) => b.classList.toggle('on', k === sIdx)); sres.querySelector('.sr.on')?.scrollIntoView({ block: 'nearest' }); }
+  if (e.key === 'Enter') pick(sIdx);
+};
+$('#openSearch').onclick = openSearch;
+sm.onclick = e => { if (e.target === sm) closeSearch(); };
+const am = $('#aboutModal'); $('#openAbout').onclick = () => am.hidden = false; $('#closeAbout').onclick = () => am.hidden = true; am.onclick = e => { if (e.target === am) am.hidden = true; };
+
+
+// ---- phone helpers: bottom sheet, view offset, speed chip
+const isPhone = () => matchMedia('(max-width:760px)').matches;
+function tourArrived(){ return state.tour >= 0 && state.route && state.routeLen - state.prog < 1 && state.selected === TOUR[state.tour]; }
+function moreTxt(p, collapsed){ return collapsed ? (p.fl ? L('看各樓層與介紹 ▴', 'Floors & details ▴') : L('看介紹 ▴', 'Details ▴')) : L('收合 ▾', 'Collapse ▾'); }
+function setCollapsed(c){
+  card.classList.toggle('collapsed', c);
+  const more = $('#cardMore'); const p = BY[state.selected];
+  if (more && p) more.textContent = moreTxt(p, c);
+  syncOffset();
+}
+function bindHandle(){
+  const h = $('#cardHandle'); if (!h) return; let y0 = null;
+  h.onpointerdown = e => { y0 = e.clientY; h.setPointerCapture(e.pointerId); };
+  h.onpointerup = e => {
+    if (y0 === null) return; const dy = e.clientY - y0; y0 = null;
+    const col = card.classList.contains('collapsed');
+    if (Math.abs(dy) < 8) setCollapsed(!col);
+    else if (dy < 0) setCollapsed(false);
+    else if (!col) setCollapsed(true); else deselect();
+  };
+  h.onpointercancel = () => { y0 = null; };
+}
+function syncOffset(){
+  requestAnimationFrame(() => {
+    const w = innerWidth, h = innerHeight;
+    const wb = $('#walkbar'), el = !card.hidden ? card : (!wb.hidden ? wb : null);
+    if (isPhone() && el){ const ch = el.getBoundingClientRect().height; camera.setViewOffset(w, h, 0, Math.min(h * .32, ch * .5), w, h); }
+    else camera.clearViewOffset();
+  });
+}
+const SPEEDS = [1, 3, 5, 10, 20];
+$('#wbChip').onclick = () => { const i = SPEEDS.indexOf(state.speed); state.speed = SPEEDS[(i + 1) % SPEEDS.length]; $('#speed').value = state.speed; $('#speedOut').textContent = state.speed + '×'; $('#wbChip').textContent = state.speed + '×'; };
+$('#wbInfo').onclick = () => { if (state.selected) renderCard(BY[state.selected]); };
+$('#aboutLink').onclick = () => { $('#layers').hidden = true; am.hidden = false; };
+document.querySelector('.compass').onclick = () => { if (isPhone()) $('#hereBtn').click(); };
+
+// keys
+const MOVE = { KeyW: 'f', ArrowUp: 'f', KeyS: 'b', ArrowDown: 'b', KeyA: 'l', ArrowLeft: 'l', KeyD: 'r', ArrowRight: 'r' };
+addEventListener('keydown', e => {
+  const typing = e.target.tagName === 'INPUT';
+  if (e.key === 'Escape'){ if (!sm.hidden) closeSearch(); else if (!am.hidden) am.hidden = true; else if (!$('#layers').hidden) $('#layersBtn').click(); else if (state.selected) deselect(); return; }
+  if (typing) return;
+  if (e.key === '/'){ e.preventDefault(); openSearch(); return; }
+  if (MOVE[e.code]){ e.preventDefault(); state.keys[MOVE[e.code]] = true; if (state.playing){ state.playing = false; updateWalkbar(); } hideIntro(); }
+  if (e.key === 'Shift') state.keys.fast = true;
+});
+addEventListener('keyup', e => { if (MOVE[e.code]) state.keys[MOVE[e.code]] = false; if (e.key === 'Shift') state.keys.fast = false; });
+addEventListener('blur', () => state.keys = {});
+
+// joystick
+const joy = $('#joy'), knob = $('#knob'); const jv = { x: 0, y: 0 }; let jid = null;
+joy.addEventListener('pointerdown', e => { jid = e.pointerId; joy.setPointerCapture(jid); moveJoy(e); if (state.playing){ state.playing = false; updateWalkbar(); } });
+joy.addEventListener('pointermove', e => { if (e.pointerId === jid) moveJoy(e); });
+const endJoy = () => { jid = null; jv.x = jv.y = 0; knob.style.transform = ''; };
+joy.addEventListener('pointerup', endJoy); joy.addEventListener('pointercancel', endJoy);
+function moveJoy(e){ const r = joy.getBoundingClientRect(); let x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2; const m = Math.hypot(x, y), max = r.width / 2 - 20; if (m > max){ x *= max / m; y *= max / m; } jv.x = x / max; jv.y = y / max; knob.style.transform = `translate(${x}px,${y}px)`; }
+
+// picking
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let down = null;
+function pickAt(e, targets){ const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(ndc, camera); return ray.intersectObjects(targets, false)[0]; }
+canvas.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; tween = null; });
+canvas.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6 || performance.now() - down.t > 600) return;
+  $('#layers').hidden = true;
+  const hit = pickAt(e, pickables);
+  if (hit){ select(hit.object.userData.id); return; }
+  const gh = pickAt(e, [ground]);
+  if (gh && state.mode === 'walk'){
+    if (!walkable(gh.point.x, gh.point.z)){ toast(L('那裡不能走，請點步道或空地', 'You can’t walk there. Tap a path or open area.')); return; }
+    planRoute({ name: '指定地點', en: 'the selected spot', doorW: gh.point.clone().setY(0) }, true);
+  } else if (state.selected) deselect();
+});
+let hoverT = 0;
+canvas.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse' || e.buttons) return; const now = performance.now(); if (now - hoverT < 60) return; hoverT = now;
+  const hit = pickAt(e, pickables); const id = hit ? hit.object.userData.id : null;
+  canvas.style.cursor = id ? 'pointer' : ''; if (id !== hovered){ hovered = id; refreshHighlight(); }
+});
+
+
+/* ================= mini-map ================= */
+const miniEl = $('#mini'), miniCv = $('#miniCv'), MX0 = 90, MY0 = 20, MW = 1320, MH = 940;
+let miniBase = null, miniK = 1, miniFrame = 0;
+const toMini = (x, z) => [((x / S + 640) - MX0) * miniK, ((z / S + 500) - MY0) * miniK];
+function miniSize(){
+  const r = miniCv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+  if (!r.width) return false;
+  const w = Math.round(r.width * dpr), h = Math.round(r.width * MH / MW * dpr);
+  if (miniCv.width !== w || miniCv.height !== h){ miniCv.width = w; miniCv.height = h; miniBase = null; }
+  miniK = w / MW; return true;
+}
+function drawMiniBase(){
+  const c = document.createElement('canvas'); c.width = miniCv.width; c.height = miniCv.height; const g = c.getContext('2d');
+  const k = miniK, X = px => (px - MX0) * k, Y = py => (py - MY0) * k;
+  const T = STYLE === 'sketch' ? (dark ? { bg:'#26302D', road:'#2F3A36', campus:'#2B3632', field:'#3E5446', track:'#7A5246', court:'#4D6C8F', edge:'rgba(236,233,220,.75)' } : { bg:'#F4F1E8', road:'#E6E1D3', campus:'#FBF9F2', field:'#D5E2C6', track:'#E6B8A8', court:'#BCD0E8', edge:'rgba(44,42,40,.8)' })
+  : dark ? { bg:'#141B1F', road:'#28323A', campus:'#1C262B', field:'#24402C', track:'#5A3A32', court:'#2C4E73', edge:'rgba(0,0,0,.5)' }
+                 : { bg:'#D3D8CE', road:'#B4B9B0', campus:'#E9EDE3', field:'#8FB67C', track:'#C9765B', court:'#5C8DBE', edge:'rgba(21,35,42,.35)' };
+  g.fillStyle = T.bg; g.fillRect(0, 0, c.width, c.height);
+  const poly = (pts, fill, stroke) => { g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(X(x), Y(y)) : g.moveTo(X(x), Y(y))); g.closePath(); g.fillStyle = fill; g.fill(); if (stroke){ g.strokeStyle = stroke; g.lineWidth = Math.max(1, k * 2); g.stroke(); } };
+  const rect = (a, b, c2, d, f) => { g.fillStyle = f; g.fillRect(X(a), Y(b), (c2 - a) * k, (d - b) * k); };
+  rect(MX0, 26, MX0 + MW, 58, T.road); rect(MX0, 905, MX0 + MW, MY0 + MH, T.road); rect(1200, MY0, 1246, MY0 + MH, T.road);
+  poly(CAMPUS, T.campus); rect(1246, 410, 1396, 720, T.campus);
+  // track + tennis + courts
+  g.beginPath(); g.ellipse(X(924), Y(557), 134 * k, 95 * k, 0, 0, Math.PI * 2); g.fillStyle = T.track; g.fill();
+  g.beginPath(); g.ellipse(X(924), Y(557), 112 * k, 73 * k, 0, 0, Math.PI * 2); g.fillStyle = T.field; g.fill();
+  for (let i = 0; i < 4; i++) rect(852 + i * 38, 525, 882 + i * 38, 589, T.court);
+  rect(610, 344, 652, 420, T.court); rect(660, 344, 702, 420, T.court);
+  rect(540, 352, 564, 402, dark ? '#5A4636' : '#C98F62'); rect(574, 352, 598, 402, dark ? '#5A4636' : '#C98F62');
+  g.beginPath(); g.arc(X(630), Y(700), 16 * k, 0, Math.PI * 2); g.fillStyle = dark ? '#2B4A5E' : '#9CC7DD'; g.fill();
+  for (const b of OBST){ const col = new THREE.Color(css(GROUPS[b.group].v)); if (STYLE === 'sketch') col.lerp(new THREE.Color(dark ? 0x3a4642 : 0xfdfcf7), .45); else if (dark) col.multiplyScalar(.75); poly(b.poly, '#' + col.getHexString(), T.edge); }
+  miniBase = c;
+}
+function drawMini(){
+  if (document.body.classList.contains('hide-mini') || miniEl.classList.contains('collapsed')) return;
+  if (!miniSize()) return;
+  if (!miniBase) drawMiniBase();
+  const g = miniCv.getContext('2d'), k = miniK, sc = Math.max(1, miniCv.width / 260);
+  g.drawImage(miniBase, 0, 0);
+  // view footprint: where the screen corners hit the ground
+  const ndcs = [[-1, -1], [1, -1], [1, 1], [-1, 1]], pts = [];
+  for (const [nx, ny] of ndcs){
+    const v = new THREE.Vector3(nx, ny, .5).unproject(camera), d = v.sub(camera.position).normalize();
+    let t = d.y < -1e-3 ? -camera.position.y / d.y : 1200; t = Math.min(t, 1200);
+    pts.push(camera.position.clone().addScaledVector(d, t));
+  }
+  g.beginPath(); pts.forEach((p, i) => { const [x, y] = toMini(p.x, p.z); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.closePath();
+  g.fillStyle = dark ? 'rgba(120,169,234,.16)' : 'rgba(28,91,165,.12)'; g.fill(); g.strokeStyle = dark ? 'rgba(120,169,234,.7)' : 'rgba(28,91,165,.6)'; g.lineWidth = sc; g.stroke();
+  // selected building
+  const sel = state.selected && BY[state.selected];
+  if (sel && sel.poly){ g.beginPath(); sel.poly.forEach(([x, y], i) => { const X = (x - MX0) * k, Y = (y - MY0) * k; i ? g.lineTo(X, Y) : g.moveTo(X, Y); }); g.closePath(); g.strokeStyle = css('--accent'); g.lineWidth = 2.2 * sc; g.stroke(); }
+  // route
+  if (state.route){
+    const rp = state.route.map(p => toMini(p.x, p.z));
+    const line = (w, c) => { g.beginPath(); rp.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.lineWidth = w; g.strokeStyle = c; g.lineJoin = g.lineCap = 'round'; g.stroke(); };
+    line(4.2 * sc, 'rgba(70,50,0,.55)'); line(2.4 * sc, dark ? '#FFC83D' : '#F5B800');
+    const [ex, ey] = rp[rp.length - 1]; g.beginPath(); g.arc(ex, ey, 3.6 * sc, 0, Math.PI * 2); g.strokeStyle = dark ? '#FFC83D' : '#C99400'; g.lineWidth = 1.6 * sc; g.stroke();
+  }
+  // lamps that are on
+  for (const l of LAMPS){ if (l.level < .1) continue; const [x, y] = toMini(l.w.x, l.w.z); g.beginPath(); g.arc(x, y, 1.8 * sc + l.level * 1.6 * sc, 0, Math.PI * 2); g.fillStyle = `rgba(255,200,110,${.35 + .55 * l.level})`; g.fill(); }
+  // you are here
+  const [cx, cy] = toMini(charPos.x, charPos.z), pulse = 1 + .35 * (.5 + .5 * Math.sin(performance.now() / 280));
+  g.beginPath(); g.arc(cx, cy, 6.5 * sc * pulse, 0, Math.PI * 2); g.fillStyle = 'rgba(220,106,43,.22)'; g.fill();
+  g.beginPath(); g.arc(cx, cy, 3.6 * sc, 0, Math.PI * 2); g.fillStyle = dark ? '#F28C4E' : '#DC6A2B'; g.fill(); g.lineWidth = 1.4 * sc; g.strokeStyle = '#fff'; g.stroke();
+  const hx = Math.sin(charYaw), hz = Math.cos(charYaw); g.beginPath(); g.moveTo(cx + hx * 6 * sc, cy + hz * 6 * sc); g.lineTo(cx + hx * 10 * sc, cy + hz * 10 * sc); g.strokeStyle = dark ? '#F28C4E' : '#DC6A2B'; g.lineWidth = 2 * sc; g.stroke();
+  if (miniFrame++ % 15 === 0) $('#miniNear').textContent = L('鄰近：', 'Near: ') + nearestName(true);
+}
+function syncMiniH(){ const h = (!document.body.classList.contains('hide-mini') && !isPhone()) ? miniEl.getBoundingClientRect().height + 10 : 0; document.documentElement.style.setProperty('--mini-h', h + 'px'); }
+miniCv.addEventListener('click', e => {
+  const r = miniCv.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * MW + MX0, py = (e.clientY - r.top) / r.height * MH + MY0;
+  const b = OBST.find(o => pip(px, py, o.poly)) || PLACES.find(p => !p.poly && p.center.distanceTo(W(px, py)) < (p.id === 'track' ? 30 : 12));
+  if (b){ select(b.id); return; }
+  const t = W(px, py); userMoved = true; followHold = performance.now();
+  if (state.mode === 'walk') setMode('overview', { noFly: true });
+  fly(state.mode === 'plan' ? planPos(t, Math.max(160, camera.position.y * .8)) : t.clone().add(camera.position.clone().sub(controls.target).setLength(Math.min(260, camera.position.distanceTo(controls.target)))), t);
+});
+$('#miniHome').onclick = () => $('#hereBtn').click();
+// the mini-map never disappears completely: collapsed it leaves a header (desktop) or a 「小地圖」 pill (phone)
+function setMiniCollapsed(c){
+  miniEl.classList.toggle('collapsed', c); $('#miniToggle').textContent = c ? '▸' : '▾'; $('#ly-mini').checked = !c;
+  try { localStorage.setItem('nutc-mini', c ? '0' : '1'); } catch (err) {}
+  syncMiniH();
+}
+$('#miniToggle').onclick = () => setMiniCollapsed(!miniEl.classList.contains('collapsed'));
+$('#miniX').onclick = e => { e.stopPropagation(); setMiniCollapsed(true); };
+$('#miniFab').onclick = () => setMiniCollapsed(false);
+$('#ly-mini').onchange = e => setMiniCollapsed(!e.target.checked);
+try { if (localStorage.getItem('nutc-mini') === '0') setMiniCollapsed(true); } catch (err) {}
+addEventListener('resize', () => { syncMiniH(); });
+setTimeout(syncMiniH, 50);
+
+/* ================= loop ================= */
+const clock = new THREE.Clock(); const tmp = new THREE.Vector3(); const NORTH = new THREE.Vector3(Math.sin(68 * Math.PI / 180), 0, -Math.cos(68 * Math.PI / 180));
+let hereT = 0;
+function resize(){ const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+let userMoved = false, followHold = -1e9;
+['pointerdown', 'wheel'].forEach(ev => canvas.addEventListener(ev, () => { userMoved = true; followHold = performance.now(); }, { passive: true }));
+function autoFrame(){ if (!userMoved && !tween && state.mode === 'overview' && !state.selected) camera.position.copy(overviewPos(controls.target)); }
+addEventListener('resize', () => { resize(); syncOffset(); autoFrame(); }); resize();
+[100, 400, 1200].forEach(t => setTimeout(() => { resize(); autoFrame(); }, t));
+
+function step(dt){
+  // manual movement
+  let mx = (state.keys.r ? 1 : 0) - (state.keys.l ? 1 : 0) + jv.x, mz = (state.keys.b ? 1 : 0) - (state.keys.f ? 1 : 0) + jv.y;
+  let moving = false;
+  const prevPos = charPos.clone();
+  if (Math.hypot(mx, mz) > .08){
+    const fwd = tmp.subVectors(controls.target, camera.position).setY(0);
+    if (fwd.lengthSq() < 1e-4) fwd.set(0, 0, -1); fwd.normalize();
+    const right = new THREE.Vector3(-fwd.z, 0, fwd.x);
+    const dir = new THREE.Vector3().addScaledVector(fwd, -mz).addScaledVector(right, mx); const m = Math.min(1, dir.length()); dir.normalize();
+    const sp = 1.4 * state.speed * (state.keys.fast ? 2 : 1) * m * dt;
+    const nx = charPos.x + dir.x * sp, nz = charPos.z + dir.z * sp;
+    if (walkable(nx, nz)){ charPos.x = nx; charPos.z = nz; }
+    else if (walkable(nx, charPos.z)) charPos.x = nx;
+    else if (walkable(charPos.x, nz)) charPos.z = nz;
+    charYaw = Math.atan2(dir.x, dir.z); moving = true;
+  } else if (state.playing && state.route){
+    state.prog = Math.min(state.routeLen, state.prog + 1.4 * state.speed * dt);
+    let acc = 0; const pts = state.route;
+    for (let i = 1; i < pts.length; i++){
+      const seg = pts[i].distanceTo(pts[i - 1]);
+      if (acc + seg >= state.prog){ const t = (state.prog - acc) / seg; charPos.lerpVectors(pts[i - 1], pts[i], t); charYaw = Math.atan2(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z); break; }
+      acc += seg;
+    }
+    moving = true; updateWalkbar();
+    if (state.prog >= state.routeLen - .01) arrive();
+  }
+  // character pose
+  charRoot.position.copy(charPos);
+  let dy = charYaw - charRoot.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); charRoot.rotation.y += dy * Math.min(1, dt * 12);
+  walkPhase += moving ? dt * (6 + Math.min(state.speed, 8)) : 0; const sw = moving ? Math.sin(walkPhase) * .6 : 0;
+  if (charParts){ charParts.legL.rotation.x = sw; charParts.legR.rotation.x = -sw; charParts.armL.rotation.x = -sw * .8; charParts.armR.rotation.x = sw * .8; }
+  ring.position.set(charPos.x, .3, charPos.z); const pulse = 1 + Math.sin(performance.now() / 300) * .12; ring.scale.setScalar(pulse);
+  // level of detail: far away → orange marker; close up → the running character; indoors → marker floats above the roof
+  const camD = camera.position.distanceTo(charPos), ps = THREE.MathUtils.clamp(camD / 45, 1, 9);
+  const inside = buildingAt(charPos), far = camD > 70;
+  pin.visible = !!inside || far;
+  const baseY = inside ? inside.h + 1.5 : 2.3;
+  pin.position.set(charPos.x, baseY + ps * .6 + (inside ? Math.sin(performance.now() / 260) * .25 * ps : 0), charPos.z); pin.scale.setScalar(ps);
+  pinHalo.quaternion.copy(camera.quaternion);
+  // passing-through effects: blinking roof marker, roof ripples, pulsing roof glow, see-through walls
+  const tnow = performance.now() / 1000, blink = .5 + .5 * Math.sin(tnow * 11);
+  pinMat.opacity = inside ? .3 + .7 * blink : 1;
+  ripples.forEach((m, i) => {
+    m.visible = !!inside;
+    if (!inside) return;
+    const ph = (tnow * .8 + i / 3) % 1, rr = 2 + ph * 16;
+    m.position.set(charPos.x, inside.h + .4, charPos.z); m.scale.setScalar(rr); m.material.opacity = (1 - ph) * .9;
+  });
+  if (inside !== step.lastInside){
+    const prev = step.lastInside;
+    if (prev && prev.mats){ prev.mats[0].emissive.set(0x000000); prev.mats[0].emissiveIntensity = 1; prev.mats[1].transparent = false; prev.mats[1].opacity = 1; prev.mats[1].depthWrite = true; prev.mats[1].needsUpdate = true; prev.mats[0].transparent = false; prev.mats[0].opacity = 1; prev.mats[0].needsUpdate = true; }
+    if (inside && inside.mats){ inside.mats[1].transparent = true; inside.mats[1].opacity = .38; inside.mats[1].depthWrite = false; inside.mats[1].needsUpdate = true; inside.mats[0].transparent = true; inside.mats[0].opacity = .75; inside.mats[0].needsUpdate = true; }
+    step.lastInside = inside; updateWalkbar();
+  }
+  if (inside && inside.mats){ inside.mats[0].emissive.set(0xdc6a2b); inside.mats[0].emissiveIntensity = .25 + .75 * blink; }
+  charRoot.visible = !inside || !far;
+  // indoors: the orange ring stays at the true position, drawn see-through on top of the walls
+  ring.material.depthTest = !inside; ring.renderOrder = inside ? 11 : 0;
+  ring.material.opacity = inside ? .45 + .4 * blink : .85;
+  const rs = inside ? Math.max(2.2, camD / 40) : 1; ring.scale.multiplyScalar(rs);
+  ringFill.visible = !!inside; ringFill.position.set(charPos.x, .32, charPos.z); ringFill.scale.setScalar(rs * pulse);
+  destMark.rotation.z += dt;
+  // navigation follow: tilted heading-up in overview, north-up in plan; pauses 5 s after the user moves the map
+  // context framing: keep the walker AND the rest of the route (plus surroundings) in view, map orientation stays put
+  if (state.playing && state.mode !== 'walk' && !tween && performance.now() - followHold > 5000){
+    const k = 1 - Math.exp(-dt * 2.2);
+    const rest = [charPos.clone().setY(0)]; let acc = 0;
+    for (let i = 1; i < state.route.length; i++){ acc += state.route[i].distanceTo(state.route[i - 1]); if (acc > state.prog) rest.push(state.route[i]); }
+    const box = new THREE.Box3().setFromPoints(rest), c = box.getCenter(new THREE.Vector3()).setY(0), sz = box.getSize(new THREE.Vector3());
+    const tgt = charPos.clone().setY(0).lerp(c, .45);
+    const r = Math.max(sz.x, sz.z) / 2 + 45, a = innerWidth / innerHeight;
+    const fit = THREE.MathUtils.clamp(r / (Math.tan(19 * Math.PI / 180) * Math.min(1, a)) * 1.05, 150, 560);
+    let pos;
+    if (state.mode === 'plan') pos = portrait() ? new THREE.Vector3(tgt.x + .01, fit, tgt.z) : new THREE.Vector3(tgt.x, fit, tgt.z + .01);
+    else { const dir = camera.position.clone().sub(controls.target).setY(0); if (dir.lengthSq() < 1) dir.set(0, 0, 1); dir.normalize(); pos = tgt.clone().add(dir.multiplyScalar(fit * .64)).setY(fit * .77); }
+    controls.target.lerp(tgt, k); camera.position.lerp(pos, k);
+  }
+  if (!state.playing) followYaw = null;
+  // camera follow
+  if (state.mode === 'walk' && !tween){ const delta = tmp.set(charPos.x, 1.3, charPos.z).sub(controls.target); controls.target.add(delta); camera.position.add(delta); }
+  else if (state.mode !== 'walk' && !tween && state.playing){ /* overview stays */ }
+  hereT += dt; if (hereT > .4){ hereT = 0; updateHere(); }
+  void prevPos;
+}
+function stepTween(dt){
+  if (!tween) return; tween.t += dt / tween.dur; const k = tween.t >= 1 ? 1 : (1 - Math.cos(Math.PI * tween.t)) / 2;
+  camera.position.lerpVectors(tween.p0, tween.p1, k); controls.target.lerpVectors(tween.t0, tween.t1, k);
+  if (tween.t >= 1) tween = null;
+}
+const needle = $('#needle'), nlabel = $('#nlabel b');
+function updateHud(){
+  const w = innerWidth, h = innerHeight; const v = new THREE.Vector3();
+  const camPos = camera.position;
+  for (const l of LBL.concat(doorLbls, thruLbls)){
+    v.copy(l.pos).project(camera);
+    let show = v.z < 1 && v.x > -1.15 && v.x < 1.15 && v.y > -1.15 && v.y < 1.15;
+    if (show && state.mode === 'walk' && camPos.distanceTo(l.pos) > (l.poi ? 90 : 200)) show = false;
+    if (show && l.poi && state.mode === 'overview' && camPos.distanceTo(controls.target) > 520) show = false;
+    if (!show){ l.sx = null; continue; }
+    l.sx = (v.x + 1) / 2 * w; l.sy = (1 - v.y) / 2 * h; l.z = v.z;
+  }
+  // declutter with hysteresis: decide every 200 ms; visible labels tolerate small overlap, hidden ones need clear room
+  const now = performance.now(), redo = now - (updateHud.t || 0) > 200; if (redo) updateHud.t = now;
+  const rank = l => l.el.classList.contains('sel') || l.door ? 0 : l.poi ? 3 : l.p.kind === 'place' ? 2 : 1;
+  const bc = document.body.classList, hidePoi = bc.contains('hide-poi'), hideLbl = bc.contains('hide-labels');
+  if (redo){
+    const order = LBL.concat(doorLbls, thruLbls).filter(l => l.sx != null).sort((a, b) => rank(a) - rank(b) || (b.vis ? 1 : 0) - (a.vis ? 1 : 0) || a.z - b.z);
+    const placed = [];
+    for (const l of order){
+      if (!l.w || l.wT !== l.el.textContent){ l.w = l.el.offsetWidth || 60; l.h = l.el.offsetHeight || 22; l.wT = l.el.textContent; }
+      const pad = l.vis ? -4 : 6; // shrink when already visible, grow when trying to appear
+      const r = [l.sx - l.w / 2 - pad, l.sy - l.h / 2 - pad / 2, l.sx + l.w / 2 + pad, l.sy + l.h / 2 + pad / 2];
+      const hidden = l.door ? false : l.poi ? hidePoi : (hideLbl && rank(l) > 0);
+      const clash = !hidden && rank(l) > 0 && placed.some(q => r[0] < q[2] && r[2] > q[0] && r[1] < q[3] && r[3] > q[1]);
+      l.vis = !clash;
+      if (l.vis && !hidden) placed.push([l.sx - l.w / 2, l.sy - l.h / 2, l.sx + l.w / 2, l.sy + l.h / 2]);
+    }
+    LBL.concat(doorLbls, thruLbls).forEach(l => { if (l.sx == null) l.vis = false; });
+  }
+  for (const l of LBL.concat(doorLbls, thruLbls)){
+    if (l.sx == null || !l.vis){ if (l.shown !== false){ l.el.style.transform = 'translate(-9999px,0)'; l.shown = false; } continue; }
+    l.el.style.transform = `translate(${Math.round(l.sx)}px,${Math.round(l.sy)}px) translate(-50%,-50%)`; l.shown = true;
+  }
+  // compass: angle of north from screen-up
+  const f = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion), u = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+  const g = f.setY(0).add(u.setY(0)); if (g.lengthSq() > 1e-6){ g.normalize(); const rgt = new THREE.Vector3(-g.z, 0, g.x);
+    const ang = Math.atan2(NORTH.dot(rgt), NORTH.dot(g)); needle.style.transform = `rotate(${ang}rad)`;
+    const nr = needle.parentElement.clientWidth / 2 - 8; nlabel.style.transform = `translate(-50%,-50%) translate(${Math.sin(ang) * nr}px,${-Math.cos(ang) * nr}px)`; }
+}
+function loop(){
+  const dt = Math.min(clock.getDelta(), .05);
+  stepTween(dt); step(dt); updateLamps(dt); controls.update();
+  if (scene.fog){ const cd = camera.position.distanceTo(controls.target); scene.fog.near = Math.max(500, cd * 1.05); scene.fog.far = scene.fog.near + 800; }
+  renderer.render(scene, camera); updateHud(); drawMini();
+  requestAnimationFrame(loop);
+}
+
+/* ================= boot ================= */
+buildChar('boy'); applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+document.fonts?.ready.then(() => paintGround(dark));
+document.body.classList.add('intro-open');
+{ let k = 'sanmin'; try { k = localStorage.getItem('nutc-entry') || 'sanmin'; } catch (err) {} setEntry(k, true); }
+{ let st = DEFAULT_STYLE; try { st = localStorage.getItem('nutc-style') || DEFAULT_STYLE; } catch (err) {} if (st !== 'model') setStyle(st, true); }
+{ let lg = 'zh'; try { lg = localStorage.getItem('nutc-lang') || 'zh'; } catch (err) {} if (lg === 'en') setLang('en', true); }
+if (COARSE){ let seen = false; try { seen = localStorage.getItem('nutc-gesture') === '1'; } catch (e) {}
+  if (!seen) canvas.addEventListener('pointerdown', function once(){ canvas.removeEventListener('pointerdown', once); toast(L('單指拖曳移動地圖 · 雙指縮放與旋轉', 'Drag with one finger to move · pinch or twist with two')); try { localStorage.setItem('nutc-gesture', '1'); } catch (e) {} }); }
+$('#loading').remove();
+// deep links from 問:
+//   map.html#changming.1                       → open one place (and floor) with its route
+//   map.html#flow:xuehuo.3~xingzheng~xunxi     → a multi-stop errand; 「跟我走」 then 「下一站」 walks them in order
+function openFromHash(){
+  const h = decodeURIComponent(location.hash.slice(1));
+  const stop = t => { const m = t.match(/^([a-z]+)(?:\.(\d))?$/); return m && BY[m[1]] ? { id: m[1], floor: m[2] ? +m[2] : null } : null; };
+  if (h.startsWith('flow:')){
+    const stops = h.slice(5).split('~').map(stop).filter(Boolean);
+    if (!stops.length) return;
+    hideIntro(); TOUR = stops.map(s => s.id); state.tourFloors = stops.map(s => s.floor); state.tourName = L('辦理流程', 'Errand');
+    state.tour = 0; select(stops[0].id, { floor: stops[0].floor });
+    toast(L(`共 ${stops.length} 站：按「跟我走」出發，到站後按「下一站」`, `${stops.length} stops: tap “Follow me”, then “Next stop” on arrival`));
+    return;
+  }
+  const s = stop(h); if (!s) return;
+  hideIntro(); select(s.id, { floor: s.floor });
+}
+addEventListener('hashchange', openFromHash);
+setTimeout(openFromHash, 150);
+
+loop();
+</script>
+
+</body>
+</html>
