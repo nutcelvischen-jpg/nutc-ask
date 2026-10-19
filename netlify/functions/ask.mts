@@ -16,7 +16,7 @@ const ALLOWED_ORIGINS = [
 ]
 const MAX_QUESTION_CHARS = 200
 const INJECTION = /(ignore|disregard|forget)\s+(all|any|the|previous|prior|above|your)|system\s*prompt|jailbreak|\bDAN\b|developer\s*mode|you\s+are\s+now|act\s+as|pretend|忽略.{0,6}(以上|之前|前面|上面|所有|規則|指令|設定)|無視.{0,6}(規則|指令|設定)|(系統|你的)(提示|設定|指令|prompt)|提示詞|你現在是|扮演|角色扮演|假裝你|越獄|開發者模式|重複.{0,4}(上面|以上|設定)|<\/?(system|question|assistant)/i
-const DAILY_PER_VISITOR = 30  // questions per browser per day (Taiwan time)
+const DAILY_PER_VISITOR = 20  // AI answers per browser per day (Taiwan time); room codes, blocked and no-match are free
 const DAILY_PER_IP = 300      // backstop for shared campus Wi-Fi / incognito
 
 // ---- Daily quota in Netlify Blobs; fails open if the store is unavailable ----
@@ -138,8 +138,8 @@ export default async (req: Request, context: Context) => {
   if (!q) return json({ error: "請輸入問題" }, 400, h)
   const en = /[a-z]/i.test(q) && /^[\x00-\x7F\s]*$/.test(q)  // digits alone (a room number) are not English
   const visitor = typeof body?.vid === "string" && /^[a-zA-Z0-9-]{8,64}$/.test(body.vid) ? body.vid : `ip-${context.ip || "unknown"}`
-  const quota = await useQuota(visitor, context.ip || "unknown")
-  if (!quota.ok) return json({ error: en ? "You’ve reached today’s limit. Please try again tomorrow." : "今天問的次數到上限了，明天再來問！急事請洽學務處。", code: "daily_limit", left: 0 }, 429, h)
+  const limited = () => json({ error: en ? "You’ve reached today’s limit. Please try again tomorrow." : "今天問的次數到上限了，明天再來問！其他規定請洽各系所或單位官網。", code: "daily_limit", left: 0 }, 429, h)
+  let quota = { ok: true, left: -1 }  // only questions that reach the model use the daily quota
 
   // obvious prompt-injection attempts never reach the model
   if (INJECTION.test(q)){
@@ -158,6 +158,8 @@ export default async (req: Request, context: Context) => {
     // tolerate stray text pasted around the key (headers must be plain ASCII)
     const raw = Netlify.env.get("OPENROUTER_API_KEY") || ""
     const key = (raw.match(/sk-or-[A-Za-z0-9_-]+/) || [raw.trim()])[0]
+    quota = await useQuota(visitor, context.ip || "unknown")
+    if (!quota.ok) return limited()
     try {
       if (!key) throw new Error("no key")
       const start = /中華路|後門/.test(q) ? "中華路入口" : /正門|校門|大門|前門|三民路/.test(q) ? "三民路校門" : body?.entry === "zhonghua" ? "中華路入口" : "三民路校門"
