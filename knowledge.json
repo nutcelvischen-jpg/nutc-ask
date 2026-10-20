@@ -1801,6 +1801,468 @@
    "q": "新進教師要辦教師證找誰？"
   },
   {
+   "id": "fac-ib-01",
+   "office": "林家慶老師（國貿系）",
+   "place": "zhongke",
+   "floor": 8,
+   "room": "3807B",
+   "topics": [
+    "林家慶",
+    "林家慶老師",
+    "林家慶教授",
+    "林家慶研究室",
+    "3807B"
+   ],
+   "examples": [
+    "林家慶老師研究室在哪"
+   ],
+   "answer": "林家慶老師（國貿系教授）研究室在中科大樓 8 樓 3807B，分機 6649，cclin@nutc.edu.tw。研究專長：國際貿易。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-02",
+   "office": "李隆生老師（國貿系）",
+   "place": "zhongshang",
+   "floor": 6,
+   "room": "7608",
+   "topics": [
+    "李隆生",
+    "李隆生老師",
+    "李隆生教授",
+    "李隆生研究室",
+    "7608"
+   ],
+   "examples": [
+    "李隆生老師研究室在哪"
+   ],
+   "answer": "李隆生老師（國貿系教授）研究室在中商大樓 6 樓 7608，分機 6861，lslee@nutc.edu.tw。研究專長：經濟學、一般管理。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-03",
+   "office": "郭永興老師（國貿系）",
+   "place": "zhongke",
+   "floor": 8,
+   "room": "3807A",
+   "topics": [
+    "郭永興",
+    "郭永興老師",
+    "郭永興教授",
+    "郭永興研究室",
+    "3807A"
+   ],
+   "examples": [
+    "郭永興老師研究室在哪"
+   ],
+   "answer": "郭永興老師（國貿系教授）研究室在中科大樓 8 樓 3807A，分機 6648，kaku@nutc.edu.tw。研究專長：國際企業管理、東亞商業環境與區域經濟、國際企業個案研究。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-04",
+   "office": "黃彥智老師（國貿系）",
+   "place": "zhongke",
+   "floor": 7,
+   "room": "3707A",
+   "topics": [
+    "黃彥智",
+    "黃彥智老師",
+    "黃彥智教授",
+    "黃彥智研究室",
+    "3707A"
+   ],
+   "examples": [
+    "黃彥智老師研究室在哪"
+   ],
+   "answer": "黃彥智老師（國貿系教授）研究室在中科大樓 7 樓 3707A，分機 6640。研究專長：國際策略管理、國際企業管理、行銷管理。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-05",
+   "office": "郭雪貞老師（國貿系）",
+   "place": "zhongke",
+   "floor": 8,
+   "room": "3810B",
+   "topics": [
+    "郭雪貞",
+    "郭雪貞老師",
+    "郭雪貞教授",
+    "郭雪貞研究室",
+    "3810B"
+   ],
+   "examples": [
+    "郭雪貞老師研究室在哪"
+   ],
+   "answer": "郭雪貞老師（國貿系副教授）研究室在中科大樓 8 樓 3810B，分機 6655，esther@nutc.edu.tw。研究專長：資料庫管理、資料結構、教育領導。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-06",
+   "office": "林佳勳老師（國貿系）",
+   "place": "zhongke",
+   "floor": 7,
+   "room": "3714B",
+   "topics": [
+    "林佳勳",
+    "林佳勳老師",
+    "林佳勳教授",
+    "林佳勳研究室",
+    "3714B"
+   ],
+   "examples": [
+    "林佳勳老師研究室在哪"
+   ],
+   "answer": "林佳勳老師（國貿系副教授）研究室在中科大樓 7 樓 3714B，分機 6647，hclin@nutc.edu.tw。研究專長：研究方法、資料處理。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-07",
+   "office": "陳香如老師（國貿系）",
+   "place": "zhongke",
+   "floor": 7,
+   "room": "3707D",
+   "topics": [
+    "陳香如",
+    "陳香如老師",
+    "陳香如教授",
+    "陳香如研究室",
+    "3707D"
+   ],
+   "examples": [
+    "陳香如老師研究室在哪"
+   ],
+   "answer": "陳香如老師（國貿系副教授）研究室在中科大樓 7 樓 3707D，分機 6643，sarah@gm.nutc.edu.tw。研究專長：公司治理、財務決策。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-08",
+   "office": "李金玲老師（國貿系）",
+   "place": "zhongke",
+   "floor": 8,
+   "room": "3810A",
+   "topics": [
+    "李金玲",
+    "李金玲老師",
+    "李金玲教授",
+    "李金玲研究室",
+    "3810A"
+   ],
+   "examples": [
+    "李金玲老師研究室在哪"
+   ],
+   "answer": "李金玲老師（國貿系副教授）研究室在中科大樓 8 樓 3810A，分機 6654，merrylee@nutc.edu.tw。研究專長：英語教學、專業英文、人工智慧應用。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-09",
+   "office": "李桂枝老師（國貿系）",
+   "place": "zhongke",
+   "floor": 7,
+   "room": "3707B",
+   "topics": [
+    "李桂枝",
+    "李桂枝老師",
+    "李桂枝教授",
+    "李桂枝研究室",
+    "3707B"
+   ],
+   "examples": [
+    "李桂枝老師研究室在哪"
+   ],
+   "answer": "李桂枝老師（國貿系副教授）研究室在中科大樓 7 樓 3707B，分機 6641，daisy@nutc.edu.tw。研究專長：投資學、國際金融。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-10",
+   "office": "楊維娟老師（國貿系）",
+   "place": "zhongke",
+   "floor": 8,
+   "room": "3810C",
+   "topics": [
+    "楊維娟",
+    "楊維娟老師",
+    "楊維娟教授",
+    "楊維娟研究室",
+    "3810C"
+   ],
+   "examples": [
+    "楊維娟老師研究室在哪"
+   ],
+   "answer": "楊維娟老師（國貿系副教授）研究室在中科大樓 8 樓 3810C，分機 6652，wyangc@nutc.edu.tw。研究專長：國際貿易、經營效率分析、環境經濟學。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-11",
+   "office": "鄭美幸老師（國貿系）",
+   "place": "zhongshang",
+   "floor": 6,
+   "room": "7607",
+   "topics": [
+    "鄭美幸",
+    "鄭美幸老師",
+    "鄭美幸教授",
+    "鄭美幸研究室",
+    "7607"
+   ],
+   "examples": [
+    "鄭美幸老師研究室在哪"
+   ],
+   "answer": "鄭美幸老師（國貿系副教授）研究室在中商大樓 6 樓 7607，分機 6860，drcheng@nutc.edu.tw。研究專長：投資學、市場微結構。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-12",
+   "office": "吳佩勳老師（國貿系）",
+   "place": "zhongke",
+   "floor": 7,
+   "room": "3714A",
+   "topics": [
+    "吳佩勳",
+    "吳佩勳老師",
+    "吳佩勳教授",
+    "吳佩勳研究室",
+    "3714A"
+   ],
+   "examples": [
+    "吳佩勳老師研究室在哪"
+   ],
+   "answer": "吳佩勳老師（國貿系副教授）研究室在中科大樓 7 樓 3714A，分機 6646，phwu@nutc.edu.tw。研究專長：行銷管理、消費者決策。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-13",
+   "office": "姜祖華老師（國貿系）",
+   "place": "zhongke",
+   "floor": 8,
+   "room": "3810D",
+   "topics": [
+    "姜祖華",
+    "姜祖華老師",
+    "姜祖華教授",
+    "姜祖華研究室",
+    "3810D"
+   ],
+   "examples": [
+    "姜祖華老師研究室在哪"
+   ],
+   "answer": "姜祖華老師（國貿系副教授）研究室在中科大樓 8 樓 3810D，分機 6653，jj@nutc.edu.tw。研究專長：經營管理、民法。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-14",
+   "office": "黃美卿老師（國貿系）",
+   "place": "zhongshang",
+   "floor": 9,
+   "room": "7913",
+   "topics": [
+    "黃美卿",
+    "黃美卿老師",
+    "黃美卿教授",
+    "黃美卿研究室",
+    "7913"
+   ],
+   "examples": [
+    "黃美卿老師研究室在哪"
+   ],
+   "answer": "黃美卿老師（國貿系副教授）研究室在中商大樓 9 樓 7913，分機 6899，maggiehuang@nutc.edu.tw。研究專長：消費行為、一般管理。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-15",
+   "office": "楊政郎老師（國貿系）",
+   "place": "zhongshang",
+   "floor": 4,
+   "room": "7430",
+   "topics": [
+    "楊政郎",
+    "楊政郎老師",
+    "楊政郎教授",
+    "楊政郎研究室",
+    "7430"
+   ],
+   "examples": [
+    "楊政郎老師研究室在哪"
+   ],
+   "answer": "楊政郎老師（國貿系副教授）研究室在中商大樓 4 樓 7430，分機 6032，chenglang@nutc.edu.tw。研究專長：國際貿易、國際金融、計量經濟。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-16",
+   "office": "黃俊儒老師（國貿系）",
+   "place": "zhongke",
+   "floor": 7,
+   "room": "3714D",
+   "topics": [
+    "黃俊儒",
+    "黃俊儒老師",
+    "黃俊儒教授",
+    "黃俊儒研究室",
+    "3714D"
+   ],
+   "examples": [
+    "黃俊儒老師研究室在哪"
+   ],
+   "answer": "黃俊儒老師（國貿系副教授）研究室在中科大樓 7 樓 3714D，分機 6644，cjhuang@nutc.edu.tw。研究專長：策略管理、動態競爭、研究方法。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-17",
+   "office": "王韋能老師（國貿系）",
+   "place": "zhongke",
+   "floor": 8,
+   "room": "3807A",
+   "topics": [
+    "王韋能",
+    "王韋能老師",
+    "王韋能教授",
+    "王韋能研究室",
+    "3807A"
+   ],
+   "examples": [
+    "王韋能老師研究室在哪"
+   ],
+   "answer": "王韋能老師（國貿系副教授）研究室在中科大樓 8 樓 3807A，分機 6651，wei7656@nutc.edu.tw。研究專長：總體經濟、環境經濟、總體政策分析。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-18",
+   "office": "張慈淑老師（國貿系）",
+   "place": "zhongke",
+   "floor": 7,
+   "room": "3707C",
+   "topics": [
+    "張慈淑",
+    "張慈淑老師",
+    "張慈淑教授",
+    "張慈淑研究室",
+    "3707C"
+   ],
+   "examples": [
+    "張慈淑老師研究室在哪"
+   ],
+   "answer": "張慈淑老師（國貿系助理教授）研究室在中科大樓 7 樓 3707C，分機 6642，changs@nutc.edu.tw。研究專長：電腦輔助教學、網頁設計、商務自動化。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-19",
+   "office": "陳佳宜老師（國貿系）",
+   "place": "zhongke",
+   "floor": 8,
+   "room": "3807C",
+   "topics": [
+    "陳佳宜",
+    "陳佳宜老師",
+    "陳佳宜教授",
+    "陳佳宜研究室",
+    "3807C"
+   ],
+   "examples": [
+    "陳佳宜老師研究室在哪"
+   ],
+   "answer": "陳佳宜老師（國貿系助理教授）研究室在中科大樓 8 樓 3807C，分機 6650，meiyuanch@nutc.edu.tw。研究專長：初級會計、成本與管理會計、中級會計學。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-20",
+   "office": "陳玉蒼老師（國貿系）",
+   "place": "zhongke",
+   "floor": 8,
+   "room": "3807C",
+   "topics": [
+    "陳玉蒼",
+    "陳玉蒼老師",
+    "陳玉蒼教授",
+    "陳玉蒼研究室",
+    "3807C"
+   ],
+   "examples": [
+    "陳玉蒼老師研究室在哪"
+   ],
+   "answer": "陳玉蒼老師（國貿系助理教授）研究室在中科大樓 8 樓 3807C，分機 6650，pollychen@nutc.edu.tw。研究專長：會展管理、會展行銷、非營利組織(NPO)管理。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-21",
+   "office": "陳美如老師（國貿系）",
+   "place": "zhongke",
+   "floor": 7,
+   "room": "3714D",
+   "topics": [
+    "陳美如",
+    "陳美如老師",
+    "陳美如教授",
+    "陳美如研究室",
+    "3714D"
+   ],
+   "examples": [
+    "陳美如老師研究室在哪"
+   ],
+   "answer": "陳美如老師（國貿系副教授）研究室在中科大樓 7 樓 3714D，分機 6645，mj0906@nutc.edu.tw。研究專長：電子商務、網路行銷。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
+   "id": "fac-ib-22",
+   "office": "陳俊智老師（國貿系）",
+   "place": "zhongshang",
+   "floor": 2,
+   "room": "7211",
+   "topics": [
+    "陳俊智",
+    "陳俊智老師",
+    "陳俊智教授",
+    "陳俊智研究室",
+    "7211"
+   ],
+   "examples": [
+    "陳俊智老師研究室在哪"
+   ],
+   "answer": "陳俊智老師（國貿系助理教授）研究室在中商大樓 2 樓 7211，elvischen@nutc.edu.tw。研究專長：循環經濟、能源經濟/政策、人工智慧、機器學習。",
+   "source": "國貿系專任教師網頁（it.nutc.edu.tw，2024-07-24 存檔），使用者提供 2026-10-20",
+   "verified": true,
+   "cat": "_faculty"
+  },
+  {
    "id": "bldg-xingzheng",
    "office": "行政大樓",
    "place": "xingzheng",

@@ -17,7 +17,7 @@ clean = lambda s: ALIAS.get(re.sub(r"（.*?）", "", s), re.sub(r"（.*?）", ""
 out = []
 for pid, alias in BUILDINGS.items():
     name = kb["places"][pid]
-    es = [e for e in kb["entries"] if e["place"] == pid and e.get("floor") is not None]
+    es = [e for e in kb["entries"] if e["place"] == pid and e.get("floor") is not None and not e.get("cat", "").startswith("_")]
     if not es: continue
     floors = {}  # floor → {name: verified?}
     for e in sorted(es, key=lambda e: (e["floor"], e.get("room") or "")):
@@ -29,12 +29,12 @@ for pid, alias in BUILDINGS.items():
         "answer": f"{name}目前收錄的單位——{lines}。" + ("（標 * 的資訊尚待確認）" if tbc else ""),
         "source": "由知識庫各條目自動彙整", "verified": True, "cat": "大樓", "label": name, "q": f"{name}有哪些單位？"})
 kb["entries"] = [e for e in kb["entries"] if e.get("cat") != "_office"]
-for e in kb["entries"]:  # 「課外活動指導組（課指組）」→ 課指組 is a topic of every entry of that office
+for e in [x for x in kb["entries"] if not x.get("cat", "").startswith("_")]:  # 「課外活動指導組（課指組）」→ 課指組 is a topic of every entry of that office
     for ab in re.findall(r"（(.*?)）", e["office"]):
         if 1 < len(ab) <= 6 and ab not in e["topics"]: e["topics"].append(ab)
 by = {}
 for e in kb["entries"]:
-    if e.get("cat") in ("大樓",) or not e.get("place") or e.get("floor") is None: continue
+    if e.get("cat") in ("大樓",) or e.get("cat", "").startswith("_") or not e.get("place") or e.get("floor") is None: continue
     by.setdefault(e["office"], []).append(e)
 for office, es in by.items():
     tasks = [x.get("label") or x["examples"][0] for x in es if x.get("label") or x["examples"]]
