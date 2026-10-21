@@ -47,5 +47,22 @@ for office, es in by.items():
         "source": "由知識庫各條目自動彙整", "verified": all(x["verified"] for x in es), "cat": "_office"})
 kb["entries"] += out
 if "大樓" not in kb["cats"]: kb["cats"].append("大樓")
+# 「你可以問什麼？」— an overview of what the knowledge base covers, rebuilt every run
+kb["entries"] = [e for e in kb["entries"] if e.get("cat") != "_help"]
+groups = {}
+for e in kb["entries"]:
+    c = e.get("cat", "")
+    if c and not c.startswith("_") and c != "大樓": groups.setdefault(c, []).append(e.get("label") or clean(e["office"]))
+parts = []
+for c in [x for x in kb.get("cats", []) if x in groups]:
+    names = list(dict.fromkeys(groups[c])); ex = "、".join(names[:4])
+    parts.append(f"・{c}：{ex}{'…等 ' + str(len(names)) + ' 項' if len(names) > 4 else ''}")
+nfac = sum(1 for e in kb["entries"] if e.get("cat") == "_faculty")
+kb["entries"].append({"id": "help", "office": "「問」可以回答什麼", "place": None, "floor": None, "room": "",
+    "topics": ["你可以問什麼", "可以問什麼", "能問什麼", "有哪些資訊", "有什麼資訊", "你會什麼", "你能做什麼", "怎麼用", "使用說明", "功能", "help", "你是誰"],
+    "examples": ["你有哪些資訊可以問？", "你可以幫我什麼"],
+    "answer": "我可以告訴你要去哪棟幾樓、找哪個單位、辦事要跑哪幾站，並在地圖上帶路。目前收錄：\n" + "\n".join(parts)
+        + (f"\n・老師研究室：國貿系 {nfac} 位" if nfac else "") + "\n也可以直接輸入教室編號（如 3705）或大樓名稱（如「昌明樓」）。完整清單在首頁「問 v1.0」。",
+    "source": "由知識庫自動彙整", "verified": True, "cat": "_help"})
 P.write_text(json.dumps(kb, ensure_ascii=False, indent=1))
 print(len(out), "building entries")
